@@ -3,6 +3,7 @@ import { toast } from "react-toastify";
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 type RequestOptions = Omit<RequestInit, "body"> & {
   body?: any;
+  suppressErrorToast?: boolean;
 };
 
 type TokenPayload = {
@@ -166,7 +167,7 @@ export async function apiClient<T>(
   options: RequestOptions = {},
   retry = true
 ): Promise<T> {
-  const { body, headers, ...rest } = options;
+  const { body, headers, suppressErrorToast, ...rest } = options;
   const accessToken = getAccessToken();
   if (!accessToken && typeof window !== "undefined" && endpoint.startsWith("/api/v1/")) {
     console.warn(`[apiClient] No access token for request: ${endpoint}`);
@@ -193,7 +194,7 @@ export async function apiClient<T>(
       removeAccessToken();
       removeRefreshToken();
       const errorMsg = "Session expired. Please log in again.";
-      if (typeof window !== "undefined") {
+      if (typeof window !== "undefined" && !suppressErrorToast) {
         toast.error(errorMsg);
       }
       throw new Error(errorMsg);
@@ -206,7 +207,7 @@ export async function apiClient<T>(
   } catch {
     // If response is not JSON, create error message from status
     const errorMessage = `Server error: ${res.status} ${res.statusText}`;
-    if (typeof window !== "undefined" && res.status != 404 && res.status != 400) {
+    if (typeof window !== "undefined" && res.status != 404 && res.status != 400 && !suppressErrorToast) {
       toast.error(errorMessage);
     }
     throw new Error(errorMessage);
@@ -215,7 +216,7 @@ export async function apiClient<T>(
   if (!res.ok) {
     const errorMessage = data?.message || data?.error || `API Error: ${res.status}`;
     // Show toast for client errors (4xx) and server errors (5xx)
-    if (typeof window !== "undefined" && res.status != 404 && res.status != 400) {
+    if (typeof window !== "undefined" && res.status != 404 && res.status != 400 && !suppressErrorToast) {
       toast.error(errorMessage);
     }
     throw new Error(errorMessage);

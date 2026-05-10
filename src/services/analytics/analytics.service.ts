@@ -67,7 +67,7 @@ export const analyticsService = {
   aiPerformanceRanking: (filters?: AnalyticsReportFilters) =>
     apiClient<{ success: boolean; message: string; data: AiPerformanceRankingResponse }>(
       `${ENDPOINTS.AI_PERFORMANCE_RANKING}${buildDateRangeQuery(filters)}`,
-      { method: 'GET' }
+      { method: 'GET', suppressErrorToast: true }
     ),
 
   aiWeeklyReports: (employeeId: string, limit?: number) => {
