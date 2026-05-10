@@ -1,0 +1,654 @@
+.tableWrapper {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgba(0, 0, 0, 0.141);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.06), inset 0 -2px 6px rgba(255, 255, 255, 0.5);
+  background-color: var(--color-surface);
+}
+
+/* Search Bar Styles */
+.searchBar {
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+  display: flex;
+  align-items: center;
+  /* justify-content: space-between; */
+  width: 100%;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.filterSection {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+}
+
+.filterButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  background-color: var(--color-primary);
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+}
+
+.filterButton:hover {
+  background-color: var(--color-primary-light);
+  box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
+  transform: translateY(-1px);
+}
+
+.filterButton:active {
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+  transform: translateY(0);
+}
+
+.filterPanel {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 8px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 12px;
+  min-width: 220px;
+  max-height: 300px;
+  overflow-y: auto;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  z-index: 100;
+}
+
+.panelTitle {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+  margin-bottom: 12px;
+  letter-spacing: 0.5px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.filterContent {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.filterPlaceholder {
+  font-size: 12px;
+  color: var(--color-text-tertiary);
+  padding: 8px;
+  text-align: center;
+}
+
+.sortSection {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.sortSection:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.sortLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.sortSelect {
+  padding: 8px 10px;
+  border: 1px solid var(--color-primary);
+  border-radius: 6px;
+  background-color: var(--color-surface);
+  color: var(--color-text-primary);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 12 12'%3e%3cpath fill='%232563eb' d='M6 9L1 4h10z'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 6px center;
+  padding-right: 24px;
+}
+
+.sortSelect:hover {
+  border-color: var(--color-primary-light);
+  background-color: rgba(37, 99, 235, 0.02);
+}
+
+.sortSelect:focus {
+  outline: none;
+  border-color: var(--color-primary-light);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.orderButtons {
+  display: flex;
+  gap: 8px;
+}
+
+.orderButton {
+  flex: 1;
+  padding: 8px 10px;
+  border: 1px solid var(--color-primary);
+  border-radius: 6px;
+  background-color: var(--color-surface);
+  color: var(--color-primary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.orderButton:hover {
+  background-color: rgba(37, 99, 235, 0.08);
+  border-color: var(--color-primary-light);
+}
+
+.orderButtonActive {
+  background-color: var(--color-primary);
+  color: white;
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+}
+
+.orderButtonActive:hover {
+  background-color: var(--color-primary-light);
+  box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
+}
+
+.searchSection {
+  display: flex;
+  align-items: center;
+  gap: 0px;
+  flex: 1;
+  min-width: 250px;
+  max-width: 400px;
+  position: relative;
+}
+
+.searchInputWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 200px;
+  /* max-width: 350px; */
+}
+
+.searchIcon {
+  position: absolute;
+  left: 12px;
+  width: 18px;
+  height: 18px;
+  color: var(--color-text-tertiary);
+  pointer-events: none;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 10px 12px 10px 40px;
+  border: 1.5px solid rgba(37, 99, 235, 0.1);
+  border-radius: 8px;
+  background-color: var(--color-surface);
+  color: var(--color-text-primary);
+  font-size: 14px;
+  transition: all 0.2s ease;
+  outline: none;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.searchInput:hover {
+  border-color: var(--color-primary);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.searchInput:focus {
+  border-color: var(--color-primary);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05), 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.searchInput::placeholder {
+  color: var(--color-text-tertiary);
+}
+
+.clearButton {
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  font-size: 16px;
+  padding: 4px 8px;
+  transition: color 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.clearButton:hover {
+  color: var(--color-primary);
+}
+
+.columnSelector {
+  padding: 10px 12px;
+  border: none;
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px;
+  background-color: var(--color-primary);
+  color: white;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+  min-width: 140px;
+  appearance: none;
+  height: 100%;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3e%3cpath fill='white' d='M6 9L1 4h10z'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  padding-right: 28px;
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+.columnSelector:hover {
+  background-color: var(--color-primary-light);
+  box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
+  /* transform: translateY(-1px); */
+}
+
+.columnSelector:focus {
+  outline: none;
+  box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3), 0 0 0 3px rgba(37, 99, 235, 0.15);
+  /* transform: translateY(-1px); */
+}
+
+.columnSelector option {
+  background-color: var(--color-surface);
+  color: var(--color-text-primary);
+  padding: 8px 12px;
+}
+
+.actionSection {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 160px;
+  flex: 1;
+  justify-content: flex-end;
+}
+
+.columnSettingsWrapper {
+  position: relative;
+}
+
+.gearButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  background-color: var(--color-primary);
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+}
+
+.gearButton:hover {
+  background-color: var(--color-primary-light);
+  box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
+  transform: translateY(-1px);
+}
+
+.gearButton:active {
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+  transform: translateY(0);
+}
+
+.columnSettingsPanel {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 8px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 12px;
+  min-width: 200px;
+  max-height: 300px;
+  overflow-y: auto;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  z-index: 100;
+}
+
+.panelTitle {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+  margin-bottom: 12px;
+  letter-spacing: 0.5px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.columnList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.columnCheckbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  font-size: 13px;
+  color: white;
+  user-select: none;
+  background-color: var(--color-primary);
+  border: none;
+  font-weight: 500;
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+  margin-bottom: 4px;
+}
+
+.columnCheckbox:hover {
+  background-color: var(--color-primary-light);
+  box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
+  transform: translateY(-1px);
+}
+
+.columnCheckbox input[type='checkbox'] {
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+  accent-color: white;
+}
+
+.addButton {
+  padding: 10px 16px;
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+  white-space: nowrap;
+}
+
+.addButton:hover {
+  background: var(--color-primary-light);
+  box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
+  transform: translateY(-1px);
+}
+
+.addButton:active {
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+  transform: translateY(0);
+}
+
+.searchResults {
+  font-size: 12px;
+  color: var(--color-text-tertiary);
+  white-space: nowrap;
+  padding: 8px 24px;
+  background-color: rgba(37, 99, 235, 0.04);
+  border-bottom: 1px solid var(--color-border);
+  font-weight: 500;
+}
+
+.tableContainer {
+  width: 100%;
+  overflow-x: auto;
+  flex: 1;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.table thead {
+  background: var(--color-surface-secondary);
+  border-bottom: 2px solid var(--color-border);
+  position: sticky;
+  top: 0;
+}
+
+.table th {
+  padding: 14px 20px;
+  text-align: left;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  letter-spacing: 0.3px;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.table td {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text-primary);
+  vertical-align: middle;
+}
+
+.table tbody tr {
+  transition: all 0.2s ease;
+  background-color: var(--color-surface);
+}
+
+.table tbody tr:hover {
+  background-color: rgba(37, 99, 235, 0.04);
+  box-shadow: inset 0 0 8px rgba(37, 99, 235, 0.05);
+}
+
+.table tbody tr.clickable {
+  cursor: pointer;
+}
+
+.loading,
+.empty,
+.noResults {
+  padding: 48px 32px;
+  text-align: center;
+  color: var(--color-text-tertiary);
+  background-color: var(--color-surface);
+  font-size: 16px;
+}
+
+.paginationFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface);
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.paginationLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.paginationButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1.5px solid rgba(37, 99, 235, 0.1);
+  background-color: var(--color-surface-secondary);
+  color: var(--color-text-secondary);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+  font-weight: 600;
+  /* Neumorphic: Inset effect */
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.paginationButton:hover:not(:disabled) {
+  background-color: rgba(37, 99, 235, 0.1);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.04), 0 2px 4px rgba(37, 99, 235, 0.2);
+}
+
+.paginationButton:active:not(:disabled) {
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.paginationButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pageNumbers {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 12px;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.pageNumber {
+  width: 34px;
+  height: 34px;
+  border: 1.5px solid rgba(37, 99, 235, 0.1);
+  background-color: var(--color-surface-secondary);
+  color: var(--color-text-secondary);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  padding: 0;
+  flex-shrink: 0;
+  /* Neumorphic: Inset effect */
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.pageNumber:hover {
+  background-color: rgba(37, 99, 235, 0.1);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.04), 0 2px 4px rgba(37, 99, 235, 0.2);
+}
+
+.pageNumberActive {
+  background: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.paginationRight {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.rowsLabel {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.rowsDropdown {
+  padding: 8px 12px;
+  border: 1.5px solid rgba(37, 99, 235, 0.1);
+  border-radius: 8px;
+  background-color: var(--color-surface-secondary);
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+  /* Neumorphic: Inset effect */
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.rowsDropdown:hover {
+  border-color: var(--color-primary);
+  background-color: rgba(37, 99, 235, 0.05);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.04), 0 2px 4px rgba(37, 99, 235, 0.2);
+}
+
+.rowsDropdown:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.04), 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+@media (max-width: 768px) {
+  .searchBar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .searchInputWrapper {
+    max-width: 100%;
+  }
+
+  .table th,
+  .table td {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+
+  .paginationFooter {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .paginationLeft,
+  .paginationRight {
+    justify-content: center;
+  }
+}

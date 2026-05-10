@@ -1,0 +1,540 @@
+/* Analytics — telemetry + AI visual layout */
+
+.hero {
+  margin-bottom: 28px;
+  max-width: 56rem;
+}
+
+.kicker {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+  margin: 0 0 6px;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 20px;
+  align-items: flex-end;
+  padding: 20px 22px;
+  border-radius: 14px;
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  margin-bottom: 28px;
+}
+
+.toolbarField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.toolbarField label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.select {
+  min-width: 200px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  font-size: 14px;
+}
+
+/* Stack primary sections vertically so desk + AI both use full width (no short column beside a tall one). */
+.mainStack {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.deskMetricSection {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+
+@media (min-width: 900px) {
+  .deskMetricSectionSplit {
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+    align-items: start;
+  }
+}
+
+.deskStripGrid {
+  display: grid;
+  gap: 12px;
+}
+
+@media (min-width: 640px) {
+  .deskStripGridDual {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.panel {
+  border-radius: 16px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+:global([data-theme='dark']) .panel {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
+}
+
+.panelAccent {
+  border-color: rgba(99, 102, 241, 0.35);
+  background: linear-gradient(
+    145deg,
+    rgba(99, 102, 241, 0.06) 0%,
+    var(--color-surface) 48%
+  );
+}
+
+.panelHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.panelTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.panelDesc {
+  margin: 6px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-text-tertiary);
+}
+
+.metaRow {
+  font-size: 12px;
+  color: var(--color-text-tertiary);
+  margin-bottom: 16px;
+}
+
+.metricGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 14px;
+}
+
+.metricCard {
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+}
+
+.metricLabel {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-tertiary);
+  margin-bottom: 6px;
+}
+
+.metricValue {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--color-text-primary);
+  line-height: 1.1;
+}
+
+.deskStrip {
+  margin-top: 18px;
+  padding: 16px;
+  border-radius: 12px;
+  background: var(--color-background);
+  border: 1px dashed var(--color-border);
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--color-text-secondary);
+}
+
+.chartBlock {
+  margin-top: 20px;
+}
+
+.chartTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  margin-bottom: 12px;
+}
+
+.bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  height: 120px;
+  padding: 8px 4px 0;
+}
+
+.barWrap {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.bar {
+  width: 100%;
+  max-width: 36px;
+  margin: 0 auto;
+  border-radius: 8px 8px 4px 4px;
+  background: linear-gradient(180deg, #6366f1, #4f46e5);
+  min-height: 4px;
+  transition: height 0.25s ease;
+}
+
+.barLabel {
+  font-size: 10px;
+  color: var(--color-text-tertiary);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.aiTop {
+  display: grid;
+  grid-template-columns: minmax(140px, 160px) minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+@media (min-width: 960px) {
+  .aiTop {
+    grid-template-columns: 180px minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 700px) {
+  .aiTop {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+}
+
+.gaugeWrap {
+  position: relative;
+  width: 160px;
+  height: 160px;
+}
+
+.gaugeSvg {
+  transform: rotate(-90deg);
+}
+
+.gaugeCenter {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.gaugeScore {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--color-text-primary);
+  line-height: 1;
+}
+
+.gaugeHint {
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+  margin-top: 4px;
+}
+
+.aiCards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.miniCard {
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+}
+
+.miniCardLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-tertiary);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.miniCardValue {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.riskOk {
+  color: #059669;
+}
+
+.riskMid {
+  color: #d97706;
+}
+
+.riskHigh {
+  color: #dc2626;
+}
+
+.summaryBox {
+  margin-top: 16px;
+  padding: 16px 18px;
+  border-radius: 12px;
+  background: var(--color-background);
+  border-left: 4px solid #6366f1;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--color-text-secondary);
+}
+
+.recList {
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.recItem {
+  display: flex;
+  gap: 12px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  border-radius: 10px;
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--color-text-secondary);
+}
+
+.recIcon {
+  flex-shrink: 0;
+  color: #6366f1;
+  margin-top: 2px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--color-border);
+}
+
+.errorBox {
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(220, 38, 38, 0.08);
+  border: 1px solid rgba(220, 38, 38, 0.25);
+  color: var(--color-danger, #b91c1c);
+  font-size: 13px;
+  margin-top: 12px;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 32px 20px;
+  color: var(--color-text-tertiary);
+  font-size: 14px;
+}
+
+.relBar {
+  margin-top: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--color-border);
+  overflow: hidden;
+}
+
+.relBarFill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #6366f1, #22d3ee);
+  transition: width 0.3s ease;
+}
+
+.pillRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+}
+
+.pillSparse {
+  border-color: rgba(245, 158, 11, 0.45);
+  background: rgba(245, 158, 11, 0.08);
+  color: var(--color-text-primary);
+}
+
+.subPanel {
+  margin-top: 16px;
+  padding: 16px 18px;
+  border-radius: 12px;
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+}
+
+.subPanelTitle {
+  margin: 0 0 12px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.benchGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.benchStat {
+  text-align: center;
+  padding: 10px;
+  border-radius: 10px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+}
+
+.benchStatLabel {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-tertiary);
+  margin-bottom: 4px;
+}
+
+.benchStatValue {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--color-text-primary);
+}
+
+.benchMessage {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+}
+
+.anomalySeverity {
+  display: inline-block;
+  margin-bottom: 10px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.anomalyHigh {
+  background: rgba(220, 38, 38, 0.12);
+  color: #b91c1c;
+}
+
+.anomalyMed {
+  background: rgba(245, 158, 11, 0.15);
+  color: #b45309;
+}
+
+.anomalyLow {
+  background: rgba(5, 150, 105, 0.12);
+  color: #047857;
+}
+
+.reasonList {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+}
+
+.kvGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 8px 16px;
+  font-size: 12px;
+}
+
+.kvRows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.kvRow {
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) auto;
+  gap: 12px;
+  align-items: baseline;
+}
+
+.kvKey {
+  color: var(--color-text-tertiary);
+}
+
+.kvVal {
+  font-weight: 600;
+  color: var(--color-text-primary);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.metaHint {
+  margin-top: 10px;
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+}

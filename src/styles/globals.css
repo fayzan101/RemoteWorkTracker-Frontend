@@ -1,0 +1,181 @@
+:root {
+  /* Typography */
+  --font-primary: "Inter Variable", Inter, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-secondary: "Manrope Variable", Manrope, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  /* Layout & depth */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-2xl: 24px;
+  --shadow-xs: 0 1px 2px color-mix(in srgb, #0f172a 4%, transparent);
+  --shadow-sm: 0 2px 10px color-mix(in srgb, #0f172a 5%, transparent);
+  --shadow-md: 0 8px 28px color-mix(in srgb, #0f172a 7%, transparent);
+  --shadow-lg: 0 22px 56px color-mix(in srgb, #0f172a 9%, transparent);
+  --shadow-card: var(--shadow-sm);
+  --shadow-inset-soft: inset 0 1px 0 color-mix(in srgb, #fff 70%, transparent);
+
+  /* Modern Primary Colors - Blue Shades */
+  --color-primary: #0284c7;
+  --color-primary-light: #0595dd;
+  --color-primary-lighter: #93c5fd;
+  --color-primary-dark: #1e40af;
+
+  /* Modern Secondary Colors */
+  --color-secondary: #64748b;
+  --color-tertiary: #94a3b8;
+
+  /* Modern Background & Surface - Light Theme */
+  --color-background: #f3f5f9;
+  --color-neutral: #eef1f6;
+  --color-surface: #ffffff;
+  --color-surface-secondary: #e8ecf2;
+
+  /* Subtle page canvas (layered over --color-background) */
+  --app-canvas-mesh:
+    radial-gradient(ellipse 120% 90% at 0% -25%, color-mix(in srgb, var(--color-primary) 10%, transparent) 0%, transparent 52%),
+    radial-gradient(ellipse 85% 70% at 100% 0%, color-mix(in srgb, #6366f1 8%, transparent) 0%, transparent 48%),
+    radial-gradient(ellipse 70% 45% at 50% 100%, color-mix(in srgb, var(--color-info) 6%, transparent) 0%, transparent 42%);
+
+  /* Modern Text Colors - Light Theme */
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #475569;
+  --color-text-tertiary: #94a3b8;
+  --color-text-muted: #cbd5e1;
+
+  /* Modern Border Colors - Light Theme */
+  --color-border: #e2e8f0;
+  --color-border-light: #cbd5e1;
+  --color-border-lighter: #f1f5f9;
+
+  /* Modern Status Colors */
+  --color-success: #06b6d4;
+  --color-danger: #ef4444;
+  --color-warning: #f97316;
+  --color-info: #06b6d4;
+
+  /* Scrollbar - Light Theme */
+  --color-scrollbar: #cbd5e1;
+  --color-scrollbar-hover: #94a3b8;
+  --color-scrollbar-track: #f1f5f9;
+
+  /* Gradient Accents */
+  --gradient-primary: linear-gradient(135deg, #2563eb 0%, #3b82f6 50%, #0284c7 100%);
+  --gradient-soft: linear-gradient(135deg, #f4f6fa 0%, #e8ecf4 100%);
+  --gradient-success: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+}
+
+/* Dark Theme */
+[data-theme="dark"] {
+  /* Modern Primary Colors - Blue Shades (adjusted for dark) */
+  --color-primary: #0ea5e9;
+  --color-primary-light: #38bdf8;
+  --color-primary-lighter: #0ea5e9;
+  --color-primary-dark: #0284c7;
+
+  /* Modern Secondary Colors */
+  --color-secondary: #94a3b8;
+  --color-tertiary: #64748b;
+
+  /* Modern Background & Surface - Dark Theme */
+  --color-background: #0c1222;
+  --color-neutral: #151d2e;
+  --color-surface: #1a2438;
+  --color-surface-secondary: #2d3a52;
+
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.28);
+  --shadow-md: 0 12px 36px rgba(0, 0, 0, 0.38);
+  --shadow-lg: 0 24px 64px rgba(0, 0, 0, 0.45);
+  --shadow-card: var(--shadow-sm);
+  --shadow-inset-soft: inset 0 1px 0 color-mix(in srgb, #fff 8%, transparent);
+
+  --app-canvas-mesh:
+    radial-gradient(ellipse 120% 90% at 0% -20%, color-mix(in srgb, var(--color-primary) 22%, transparent) 0%, transparent 52%),
+    radial-gradient(ellipse 80% 65% at 100% 5%, color-mix(in srgb, #818cf8 14%, transparent) 0%, transparent 48%),
+    radial-gradient(ellipse 65% 50% at 50% 100%, color-mix(in srgb, var(--color-info) 12%, transparent) 0%, transparent 45%);
+
+  /* Modern Text Colors - Dark Theme */
+  --color-text-primary: #f8fafc;
+  --color-text-secondary: #cbd5e1;
+  --color-text-tertiary: #94a3b8;
+  --color-text-muted: #64748b;
+
+  /* Modern Border Colors - Dark Theme */
+  --color-border: #334155;
+  --color-border-light: #475569;
+  --color-border-lighter: #1e293b;
+
+  /* Scrollbar - Dark Theme */
+  --color-scrollbar: #475569;
+  --color-scrollbar-hover: #64748b;
+  --color-scrollbar-track: #1e293b;
+
+  /* Gradient Accents - Dark Theme */
+  --gradient-primary: linear-gradient(135deg, #0284c7 0%, #0595dd 50%, #0ea5e9 100%);
+  --gradient-soft: linear-gradient(135deg, #1a2438 0%, #2d3a52 100%);
+  --gradient-success: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  /* Custom scrollbar for webkit browsers */
+  scrollbar-color: var(--color-scrollbar) var(--color-scrollbar-track);
+  scrollbar-width: thin;
+}
+
+/* Webkit scrollbar (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-scrollbar-track);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-scrollbar);
+  border-radius: 5px;
+  border: 2px solid var(--color-scrollbar-track);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-scrollbar-hover);
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-primary), 'Segoe UI', sans-serif;
+  background-color: var(--color-background);
+  background-image: var(--app-canvas-mesh);
+  background-attachment: fixed;
+  color: var(--color-text-primary);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+main {
+  min-height: 100vh;
+}
+
+/* Toasts aligned with app chrome */
+.Toastify__toast {
+  border-radius: var(--radius-lg) !important;
+  font-family: var(--font-primary), system-ui, sans-serif !important;
+  box-shadow: var(--shadow-md) !important;
+  border: 1px solid color-mix(in srgb, var(--color-border) 60%, transparent) !important;
+}
+
+.fontPrimary {
+  font-family: var(--font-primary), 'Segoe UI', sans-serif;
+}
+
+.fontSecondary {
+  font-family: var(--font-secondary), 'Segoe UI', sans-serif;
+}

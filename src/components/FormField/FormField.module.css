@@ -1,0 +1,103 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.label {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--color-text-primary);
+}
+
+.required {
+  color: var(--color-danger);
+  margin-left: 2px;
+}
+
+.error {
+  font-size: 12px;
+  color: var(--color-danger);
+  margin-top: 2px;
+  font-weight: 600;
+}
+
+.field input:not([type='checkbox']):not([type='radio']),
+.field textarea,
+.field select {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  color: var(--color-text-primary);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-xs);
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    background-color 0.18s ease;
+}
+
+.field textarea {
+  min-height: 100px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.field select {
+  cursor: pointer;
+  appearance: auto;
+  color: var(--color-text-primary);
+}
+
+.field input::placeholder,
+.field textarea::placeholder {
+  color: var(--color-text-secondary);
+  font-weight: 500;
+  opacity: 1;
+}
+
+.field input:not([type='checkbox']):not([type='radio']):focus,
+.field textarea:focus,
+.field select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--color-primary) 14%, transparent),
+    var(--shadow-xs);
+  background: var(--color-surface);
+}
+
+.field input[type='checkbox'],
+.field input[type='radio'] {
+  width: auto;
+  min-height: unset;
+  margin-right: 8px;
+  box-shadow: none;
+}
+
+.field input[type='date'],
+.field input[type='datetime-local'],
+.field input[type='time'] {
+  color-scheme: light;
+}
+
+:global([data-theme='dark']) .field input:not([type='checkbox']):not([type='radio']),
+:global([data-theme='dark']) .field textarea,
+:global([data-theme='dark']) .field select {
+  background: color-mix(in srgb, var(--color-surface) 95%, var(--color-neutral));
+  border-color: var(--color-border-light);
+  color: var(--color-text-primary);
+  color-scheme: dark;
+}
+
+:global([data-theme='dark']) .field input::placeholder,
+:global([data-theme='dark']) .field textarea::placeholder {
+  color: var(--color-text-tertiary);
+}
