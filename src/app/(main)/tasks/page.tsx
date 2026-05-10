@@ -52,13 +52,13 @@ function getProjectId(task: Task) {
 }
 
 function getTaskDeadlineValue(task: Task): string | undefined {
-  const raw = task.deadline ?? (task as { due_date?: string }).due_date;
+  const raw: unknown = task.deadline ?? (task as { due_date?: unknown }).due_date;
   if (raw == null) return undefined;
   if (typeof raw === 'string') {
     const t = raw.trim();
     return t === '' ? undefined : t;
   }
-  if (raw instanceof Date && !Number.isNaN(raw.getTime())) {
+  if (raw && typeof raw === 'object' && raw instanceof Date && !Number.isNaN(raw.getTime())) {
     return raw.toISOString().slice(0, 10);
   }
   const s = String(raw).trim();

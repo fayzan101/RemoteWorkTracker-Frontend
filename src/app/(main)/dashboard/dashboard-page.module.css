@@ -34,7 +34,7 @@
 
 .hero {
   display: flex;
-  align-items: end;
+  align-items: flex-end;
   justify-content: space-between;
   gap: 20px;
   padding: 22px 24px;
@@ -172,7 +172,7 @@
 
 .miniBars {
   display: flex;
-  align-items: end;
+  align-items: flex-end;
   gap: 3px;
   height: 34px;
 }
@@ -187,7 +187,7 @@
   display: grid;
   grid-template-columns: minmax(0, 9fr) minmax(0, 3fr);
   gap: 18px;
-  align-items: start;
+  align-items: flex-start;
   min-width: 0;
 }
 
@@ -216,7 +216,7 @@
 
 .cardHeader {
   display: flex;
-  align-items: start;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
   padding: 18px 18px 0;
@@ -591,7 +591,7 @@
 
 .bulletItem {
   display: flex;
-  align-items: start;
+  align-items: flex-start;
   gap: 8px;
   color: var(--color-text-secondary);
   font-size: 12px;
@@ -649,7 +649,7 @@
 
 .alertItem {
   display: flex;
-  align-items: start;
+  align-items: flex-start;
   gap: 8px;
 }
 
@@ -756,7 +756,7 @@
 
 .pageMiniChart {
   display: flex;
-  align-items: end;
+  align-items: flex-end;
   gap: 4px;
   height: 40px;
 }
@@ -824,7 +824,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 14px;
-  align-items: start;
+  align-items: flex-start;
 }
 
 /* Payroll: up to 5 rows, scroll if needed */
@@ -864,7 +864,7 @@
 @media (max-width: 1024px) {
   .hero {
     flex-direction: column;
-    align-items: start;
+    align-items: flex-start;
   }
 
   .employeeGrid {
@@ -898,7 +898,7 @@
   .timelineTop,
   .hero,
   .topItem {
-    align-items: start;
+    align-items: flex-start;
   }
 
   .timelineAxis,
@@ -911,7 +911,7 @@
 
   .donutWrap {
     flex-direction: column;
-    align-items: start;
+    align-items: flex-start;
   }
 }
 

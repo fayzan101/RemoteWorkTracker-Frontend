@@ -29,7 +29,7 @@ const mainNavItems = [
   { label: 'Payroll', href: '/payroll', iconHref: '/icons/goals.svg' },
 ];
 
-const secondaryNavItems = [
+const secondaryNavItems: { label?: string; href?: string; iconHref?: string; showIndicator?: boolean; deleteAction?: boolean; exact?: boolean}[] = [
   // { label: 'Settings', href: '/settings', iconHref: '/icons/settings.svg' },
 ];
 
@@ -73,6 +73,7 @@ function NavLinks({
   return (
     <ul className={styles.navList}>
       {items.map((item) => {
+        if (!item.href) return null;
         const active = isActivePath(pathname, item.href, item.exact);
         if (item.deleteAction) {
           return (
