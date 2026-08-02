@@ -7,7 +7,7 @@ import FormField from '@/components/FormField';
 import ActionButton from '@/components/ActionButton';
 import { useAuth } from '@/hooks';
 import { ACTION_BUTTON_SIZES, ACTION_BUTTON_COLORS } from '@/constants/actionButtons';
-import { useAttendanceListAll } from '@/services/attendance/useAttendance';
+import { useAttendanceListAll, useAttendanceCheckIn, useAttendanceCheckOut } from '@/services/attendance/useAttendance';
 import { useUsersList } from '@/services/users/useUsers';
 import type {
   AttendanceFilters,
@@ -135,11 +135,14 @@ function extractUsers(usersResponse: unknown) {
 }
 
 export default function AttendancePage() {
-  const { organizationId } = useAuth();
+  const { organizationId, user } = useAuth();
   const [page, setPage] = useState(1);
   const [limit] = useState(20);
   const [draftFilters, setDraftFilters] = useState<AttendanceFilters>(defaultFilters);
   const [appliedFilters, setAppliedFilters] = useState<AttendanceFilters>(defaultFilters);
+  const [checkInError, setCheckInError] = useState<string | null>(null);
+  const [checkInStatus, setCheckInStatus] = useState<string | null>(null);
+  const [openSessionId, setOpenSessionId] = useState<string | null>(null);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [modalUserId, setModalUserId] = useState<string | null>(null);
@@ -158,8 +161,27 @@ export default function AttendancePage() {
 
   const { data: apiBody, isLoading } = useAttendanceListAll(queryFilters);
   const { data: usersResponse } = useUsersList();
+  const checkIn = useAttendanceCheckIn();
+  const checkOut = useAttendanceCheckOut();
 
   const users = useMemo(() => extractUsers(usersResponse), [usersResponse]);
+
+  const userNameById = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const u of users) {
+      const id = userOptionId(u);
+      if (!id) continue;
+      const label = (u.name || u.email || '').trim();
+      if (label) map.set(id, label);
+    }
+    return map;
+  }, [users]);
+
+  const resolveEmployeeName = (row: AttendanceTableRow) => {
+    if (row.employeeName?.trim()) return row.employeeName.trim();
+    if (row.userId && userNameById.has(row.userId)) return userNameById.get(row.userId)!;
+    return 'Unknown employee';
+  };
 
   const normalizedPayload = useMemo(() => {
     const inner = unwrapApiBody(apiBody);
@@ -218,10 +240,9 @@ export default function AttendancePage() {
 
   const openSegments = (row: AttendanceTableRow) => {
     if (!organizationId || !row.userId || !row.day || row.day === '—') return;
-    const label = row.employeeName || row.userId;
     setModalUserId(row.userId);
     setModalDay(row.day);
-    setModalLabel(label);
+    setModalLabel(resolveEmployeeName(row));
     setModalOpen(true);
   };
 
@@ -240,41 +261,104 @@ export default function AttendancePage() {
         <div>
           <h1 className={styles.pageTitle}>Attendance</h1>
           <p className={styles.pageSubtitle}>
-            Derived from Remote Work Agent desk telemetry (activity + idle logs). Requires employees to pair the agent —
-            manual check-ins are disabled.
+            Daily desk presence from the Remote Work Agent. Open any row for app/window activity segments.
           </p>
         </div>
       </div>
 
-        {/* <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-            gap: '12px',
-            marginBottom: '18px',
-          }}
-        >
-          <div style={{ border: '1px solid #e5e7eb', borderRadius: '10px', padding: '14px' }}>
-            <div style={{ fontSize: '12px', color: '#6b7280' }}>Shown rows</div>
-            <div style={{ fontSize: '22px', fontWeight: 700 }}>{visibleRows.length}</div>
+      <div className={styles.featureGridWide}>
+        <div className={styles.statTile}>
+          <div className={styles.statTileLabel}>Shown rows</div>
+          <div className={styles.statTileValue}>{visibleRows.length}</div>
+        </div>
+        <div className={styles.statTile}>
+          <div className={styles.statTileLabel}>Employees in view</div>
+          <div className={styles.statTileValue}>{empCount}</div>
+        </div>
+        <div className={styles.statTile}>
+          <div className={styles.statTileLabel}>Avg active / row</div>
+          <div className={styles.statTileValue}>
+            {avgActiveMins != null ? `${avgActiveMins.toFixed(0)} min` : '—'}
           </div>
-          <div style={{ border: '1px solid #e5e7eb', borderRadius: '10px', padding: '14px' }}>
-            <div style={{ fontSize: '12px', color: '#6b7280' }}>Employees in view</div>
-            <div style={{ fontSize: '22px', fontWeight: 700 }}>{empCount}</div>
+        </div>
+        <div className={styles.statTile}>
+          <div className={styles.statTileLabel}>Avg idle / row</div>
+          <div className={styles.statTileValue}>
+            {avgIdleMins != null ? `${avgIdleMins.toFixed(0)} min` : '—'}
           </div>
-          <div style={{ border: '1px solid #e5e7eb', borderRadius: '10px', padding: '14px' }}>
-            <div style={{ fontSize: '12px', color: '#6b7280' }}>Avg tracked active / row</div>
-            <div style={{ fontSize: '22px', fontWeight: 700 }}>
-              {avgActiveMins != null ? `${avgActiveMins.toFixed(1)} min` : '—'}
-            </div>
+        </div>
+      </div>
+
+      {user && (
+        <div className={styles.panelCard} style={{ marginBottom: 16 }}>
+          <div className={styles.panelCardTitle}>Manual check-in / check-out</div>
+          <p className={styles.panelCardHint}>
+            Requires an employee access token (not org-admin). Uses browser geolocation for fence checks.
+          </p>
+          {checkInError && <div className={styles.inlineAlert} style={{ marginBottom: 8 }}>{checkInError}</div>}
+          {checkInStatus && (
+            <div style={{ color: '#16a34a', fontSize: 14, marginBottom: 8, fontWeight: 600 }}>{checkInStatus}</div>
+          )}
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <ActionButton
+              label={checkIn.isPending ? '...' : 'Check in'}
+              onClick={async () => {
+                setCheckInError(null);
+                setCheckInStatus(null);
+                try {
+                  const pos = await new Promise<GeolocationPosition>((resolve, reject) => {
+                    if (!navigator.geolocation) {
+                      reject(new Error('Geolocation not supported'));
+                      return;
+                    }
+                    navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 15000 });
+                  });
+                  const res = await checkIn.mutateAsync({
+                    latitude: pos.coords.latitude,
+                    longitude: pos.coords.longitude,
+                    ipAddress: '127.0.0.1',
+                    deviceId: 'web-portal',
+                  });
+                  const session =
+                    (res?.data as { sessionId?: string; attendanceId?: string; attendance_id?: string } | undefined) ||
+                    {};
+                  const sid = session.sessionId || session.attendanceId || session.attendance_id || null;
+                  if (sid) setOpenSessionId(sid);
+                  setCheckInStatus('Checked in successfully.');
+                } catch (err) {
+                  setCheckInError(err instanceof Error ? err.message : 'Check-in failed');
+                }
+              }}
+              color={ACTION_BUTTON_COLORS.success}
+              width={ACTION_BUTTON_SIZES.labelOnly.width}
+              height={ACTION_BUTTON_SIZES.labelOnly.height}
+              disabled={checkIn.isPending}
+            />
+            <ActionButton
+              label={checkOut.isPending ? '...' : 'Check out'}
+              onClick={async () => {
+                setCheckInError(null);
+                setCheckInStatus(null);
+                if (!openSessionId) {
+                  setCheckInError('No open session id. Check in first this session.');
+                  return;
+                }
+                try {
+                  await checkOut.mutateAsync({ sessionId: openSessionId, deviceId: 'web-portal' });
+                  setOpenSessionId(null);
+                  setCheckInStatus('Checked out successfully.');
+                } catch (err) {
+                  setCheckInError(err instanceof Error ? err.message : 'Check-out failed');
+                }
+              }}
+              color={ACTION_BUTTON_COLORS.secondary}
+              width={ACTION_BUTTON_SIZES.labelOnly.width}
+              height={ACTION_BUTTON_SIZES.labelOnly.height}
+              disabled={checkOut.isPending || !openSessionId}
+            />
           </div>
-          <div style={{ border: '1px solid #e5e7eb', borderRadius: '10px', padding: '14px' }}>
-            <div style={{ fontSize: '12px', color: '#6b7280' }}>Avg idle / row</div>
-            <div style={{ fontSize: '22px', fontWeight: 700 }}>
-              {avgIdleMins != null ? `${avgIdleMins.toFixed(1)} min` : '—'}
-            </div>
-          </div>
-        </div> */}
+        </div>
+      )}
 
       <div className={styles.featureGrid}>
         <div className={styles.panelCard}>
@@ -301,7 +385,7 @@ export default function AttendancePage() {
                   const uid = userOptionId(u);
                   return (
                     <option key={uid} value={uid}>
-                      {u.name || uid || 'Employee'}
+                      {u.name || u.email || 'Employee'}
                     </option>
                   );
                 })}
@@ -365,23 +449,27 @@ export default function AttendancePage() {
         columns={[
           {
             header: 'Employee',
-            accessor: (row) => row.employeeName || row.userId || '-',
-            width: '14%',
+            accessor: (row) => (
+              <div className={styles.personCell}>
+                <span className={styles.personName}>{resolveEmployeeName(row)}</span>
+              </div>
+            ),
+            width: '16%',
           },
           {
             header: 'Day (UTC)',
             accessor: 'day',
-            width: '9%',
+            width: '10%',
           },
           {
             header: 'First activity',
             accessor: (row) => formatDateTime(row.firstSeen),
-            width: '14%',
+            width: '15%',
           },
           {
             header: 'Last activity',
             accessor: (row) => formatDateTime(row.lastSeen),
-            width: '14%',
+            width: '15%',
           },
           {
             header: 'Active',
@@ -389,38 +477,33 @@ export default function AttendancePage() {
             width: '9%',
           },
           {
-            header: 'Idle rep.',
+            header: 'Idle',
             accessor: (row) => secondsToLabel(row.idleSeconds),
             width: '9%',
           },
           {
             header: 'Segments',
-            accessor: 'segmentCount',
-            width: '7%',
+            accessor: (row) => (
+              <span className={`${styles.statusBadge} ${styles.statusBadgeNeutral}`}>{row.segmentCount}</span>
+            ),
+            width: '8%',
           },
           {
-            header: ' ',
+            header: 'Details',
             accessor: (row) => (
               <button
                 type="button"
+                className={styles.detailButton}
                 onClick={(e) => {
                   e.stopPropagation();
                   openSegments(row);
                 }}
-                disabled={row.segmentCount === 0 || !organizationId || !row.userId || row.day === '—'}
-                style={{
-                  fontSize: '12px',
-                  padding: '4px 10px',
-                  borderRadius: '8px',
-                  border: '1px solid var(--color-border)',
-                  cursor: row.segmentCount ? 'pointer' : 'default',
-                  background: '#f8fafc',
-                }}
+                disabled={!organizationId || !row.userId || row.day === '—'}
               >
-                Detail
+                View activity
               </button>
             ),
-            width: '24%',
+            width: '12%',
           },
         ]}
         isLoading={isLoading}
@@ -432,9 +515,9 @@ export default function AttendancePage() {
         enablePagination={false}
       />
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '12px', alignItems: 'center' }}>
-        <div style={{ color: '#6b7280', fontSize: '14px' }}>
-          {`Page ${page} of ${totalPages} • ${totalRecords} total records`}
+      <div className={styles.tableToolbar}>
+        <div className={styles.tableToolbarMeta}>
+          {`Page ${page} of ${totalPages} · ${totalRecords} total records`}
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
           <ActionButton

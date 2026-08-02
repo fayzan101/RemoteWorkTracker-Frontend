@@ -54,6 +54,8 @@ export const learningService = {
     if (filters?.page) params.append("page", filters.page.toString());
     if (filters?.limit) params.append("limit", filters.limit.toString());
     if (filters?.status) params.append("status", filters.status);
+    if (filters?.userId) params.append("userId", filters.userId);
+    if (filters?.courseId) params.append("courseId", filters.courseId);
     const queryString = params.toString();
     const url = queryString ? `${ENDPOINTS.ENROLLMENTS}?${queryString}` : ENDPOINTS.ENROLLMENTS;
     return apiClient<{ data: CourseEnrollment[] }>(url, { method: "GET" });

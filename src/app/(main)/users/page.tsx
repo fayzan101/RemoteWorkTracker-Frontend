@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useMemo, useState } from 'react';
 import { Edit, Trash2 } from 'lucide-react';
 import styles from '../main-pages.module.css';
 import DataTable from '@/components/DataTable';
@@ -33,7 +33,16 @@ function getUserId(user: User) {
   return user.user_id || user.userId || user.id || '';
 }
 
+function getUserRoleId(user: User) {
+  return user.role_id || user.roleId || '';
+}
+
+function getUserDepartmentId(user: User) {
+  return user.department_id || user.departmentId || '';
+}
+
 export default function UsersPage() {
+  const formRef = useRef<HTMLFormElement>(null);
   const { organizationId } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -42,6 +51,8 @@ export default function UsersPage() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   /** Free-typed salary string so number inputs don’t break on partial entry / NaN. */
   const [salaryInput, setSalaryInput] = useState('');
+  const [roleFilter, setRoleFilter] = useState('');
+  const [departmentFilter, setDepartmentFilter] = useState('');
   const [formData, setFormData] = useState<CreateUserPayload>({
     name: '',
     email: '',
@@ -61,6 +72,16 @@ export default function UsersPage() {
   const deleteUser = useDeleteUser(deleteId || '');
 
   const users = response?.data || [];
+  const roles = rolesResponse?.roles || [];
+  const departments = departmentsResponse?.data || [];
+
+  const filteredUsers = useMemo(() => {
+    return users.filter((user) => {
+      if (roleFilter && getUserRoleId(user) !== roleFilter) return false;
+      if (departmentFilter && getUserDepartmentId(user) !== departmentFilter) return false;
+      return true;
+    });
+  }, [users, roleFilter, departmentFilter]);
 
   const formatSalary = (salary?: number | string) => {
       if (salary === undefined || salary === null || salary === '') return '-';
@@ -256,8 +277,36 @@ export default function UsersPage() {
         />
       </div>
 
+      <div className={styles.panelCard} style={{ marginBottom: '20px' }}>
+        <div className={styles.panelCardHeader}>
+          <div className={styles.panelCardTitle}>Filters</div>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px' }}>
+          <FormField label="Role">
+            <select value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)}>
+              <option value="">All roles</option>
+              {roles.map((role) => (
+                <option key={role.role_id} value={role.role_id}>
+                  {role.name}
+                </option>
+              ))}
+            </select>
+          </FormField>
+          <FormField label="Department">
+            <select value={departmentFilter} onChange={(e) => setDepartmentFilter(e.target.value)}>
+              <option value="">All departments</option>
+              {departments.map((dept) => (
+                <option key={dept.departmentId} value={dept.departmentId}>
+                  {dept.name}
+                </option>
+              ))}
+            </select>
+          </FormField>
+        </div>
+      </div>
+
       <DataTable<User>
-        data={users}
+        data={filteredUsers}
         columns={[
           { header: 'Name', accessor: 'name', width: '20%' },
           { header: 'Email', accessor: 'email', width: '25%' },
@@ -325,7 +374,7 @@ export default function UsersPage() {
             />
             <ActionButton
               label={editingId ? 'Update' : 'Create'}
-              onClick={() => handleSubmit(new Event('submit') as any)}
+              onClick={() => formRef.current?.requestSubmit()}
               color={ACTION_BUTTON_COLORS.success}
               width={ACTION_BUTTON_SIZES.labelOnly.width}
               height={ACTION_BUTTON_SIZES.labelOnly.height}
@@ -333,7 +382,7 @@ export default function UsersPage() {
           </div>
         }
       >
-        <form onSubmit={handleSubmit}>
+        <form ref={formRef} onSubmit={handleSubmit}>
           {submitError && (
             <div style={{ color: '#dc2626', marginBottom: '12px', fontSize: '14px' }}>
               {submitError}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { Edit, MessageSquare, Trash2 } from 'lucide-react';
 import baseStyles from '../main-pages.module.css';
 import styles from './tasks-page.module.css';
@@ -10,10 +10,11 @@ import ConfirmDialog from '@/components/ConfirmDialog';
 import FormField from '@/components/FormField';
 import ActionButton from '@/components/ActionButton';
 import { ACTION_BUTTON_COLORS, ACTION_BUTTON_SIZES } from '@/constants/actionButtons';
-import { useTasksList, useCreateTask, useUpdateTask, useDeleteTask, useTaskComments, useAddTaskComment } from '@/services/tasks/useTasks';
+import { useTasksList, useCreateTask, useUpdateTask, useDeleteTask, useTaskComments, useAddTaskComment, useTaskAttachments, useAddTaskAttachment, useDeleteTaskAttachment } from '@/services/tasks/useTasks';
 import { useUsersList } from '@/services/users/useUsers';
 import { useRolesList } from '@/services/roles/useRoles';
 import { useProjectsList } from '@/services/projects/useProjects';
+import { useAuth } from '@/hooks';
 import { unwrapApiList } from '@/app/(main)/dashboard/dashboard-helpers';
 import type { CreateTaskInput, Task, TaskPriority, TaskStatus, User, Project } from '@/types';
 
@@ -52,13 +53,13 @@ function getProjectId(task: Task) {
 }
 
 function getTaskDeadlineValue(task: Task): string | undefined {
-  const raw: unknown = task.deadline ?? (task as { due_date?: unknown }).due_date;
+  const raw: unknown = task.deadline ?? (task as { due_date?: string }).due_date;
   if (raw == null) return undefined;
   if (typeof raw === 'string') {
     const t = raw.trim();
     return t === '' ? undefined : t;
   }
-  if (raw && typeof raw === 'object' && raw instanceof Date && !Number.isNaN(raw.getTime())) {
+  if (raw instanceof Date && !Number.isNaN(raw.getTime())) {
     return raw.toISOString().slice(0, 10);
   }
   const s = String(raw).trim();
@@ -89,11 +90,17 @@ function getUserId(user: User) {
   return user.user_id || user.userId || user.id || '';
 }
 
+function normalizeRoleName(name: string) {
+  return name.trim().toLowerCase().replace(/[\s-]+/g, '_');
+}
+
+/** Exact role set — mirrors backend requireManagerOrAdmin exclusions for assignees. */
+const NON_ASSIGNEE_ROLES = new Set(['admin', 'super_admin', 'manager']);
+
 function isEmployeeRole(roleName: string) {
-  const normalized = roleName.toLowerCase();
+  const normalized = normalizeRoleName(roleName);
   if (!normalized) return true;
-  const managerLike = ['manager', 'admin', 'owner', 'lead'];
-  return !managerLike.some((role) => normalized.includes(role));
+  return !NON_ASSIGNEE_ROLES.has(normalized);
 }
 
 export default function TasksPage() {
@@ -103,6 +110,7 @@ export default function TasksPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [activeTaskForComments, setActiveTaskForComments] = useState<string | null>(null);
   const [commentText, setCommentText] = useState('');
+  const [attachmentPath, setAttachmentPath] = useState('');
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<TaskStatus | ''>('');
   const [priorityFilter, setPriorityFilter] = useState<TaskPriority | ''>('');
@@ -116,19 +124,27 @@ export default function TasksPage() {
     [statusFilter, priorityFilter]
   );
 
-  const { data: tasksResponse, isLoading } = useTasksList(filters);
+  const formRef = useRef<HTMLFormElement>(null);
+  const { organizationId } = useAuth();
+  const { data: tasksResponse, isLoading, isError } = useTasksList(filters);
   const { data: usersResponse, isLoading: isUsersLoading } = useUsersList();
   const { data: rolesResponse } = useRolesList();
-  // Match Projects page: list is not scoped by organization_id query param so the dropdown stays in sync with /projects.
-  const { data: projectsResponse, isLoading: isProjectsLoading } = useProjectsList(1, 100);
+  const { data: projectsResponse, isLoading: isProjectsLoading } = useProjectsList(
+    1,
+    100,
+    organizationId || undefined
+  );
 
   const createTask = useCreateTask();
   const updateTask = useUpdateTask();
   const deleteTask = useDeleteTask();
   const addComment = useAddTaskComment();
+  const addAttachment = useAddTaskAttachment();
+  const deleteAttachment = useDeleteTaskAttachment();
 
   const commentsTaskId = activeTaskForComments || '';
   const { data: commentsResponse, isLoading: isCommentsLoading } = useTaskComments(commentsTaskId);
+  const { data: attachmentsResponse, isLoading: isAttachmentsLoading } = useTaskAttachments(commentsTaskId);
 
   const tasksPayload = tasksResponse?.data;
   const tasks = useMemo(() => {
@@ -201,12 +217,24 @@ export default function TasksPage() {
   const comments =
     (commentsResponse?.data as { taskId?: string; comments?: Array<{ comment?: string; created_at?: string; createdAt?: string }> } | undefined)
       ?.comments || [];
+  const attachmentsRaw = attachmentsResponse?.data as unknown;
+  const attachments: Array<{
+    attachment_id?: string;
+    attachmentId?: string;
+    file_path?: string;
+    filePath?: string;
+  }> = Array.isArray(attachmentsRaw)
+    ? attachmentsRaw
+    : Array.isArray((attachmentsRaw as { data?: unknown } | null)?.data)
+      ? ((attachmentsRaw as { data: Array<{ attachment_id?: string; attachmentId?: string; file_path?: string; filePath?: string }> }).data)
+      : [];
 
   const closeModal = () => {
     setIsModalOpen(false);
     setEditingId(null);
     setActiveTaskForComments(null);
     setCommentText('');
+    setAttachmentPath('');
     setSubmitError(null);
     setFormData(emptyForm);
   };
@@ -215,6 +243,7 @@ export default function TasksPage() {
     setEditingId(null);
     setActiveTaskForComments(null);
     setCommentText('');
+    setAttachmentPath('');
     setSubmitError(null);
     setFormData(emptyForm);
     setIsModalOpen(true);
@@ -330,6 +359,19 @@ export default function TasksPage() {
     }
   };
 
+  const handleAddAttachment = async () => {
+    if (!activeTaskForComments || !attachmentPath.trim()) return;
+    try {
+      await addAttachment.mutateAsync({
+        taskId: activeTaskForComments,
+        filePath: attachmentPath.trim(),
+      });
+      setAttachmentPath('');
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   return (
     <div className={baseStyles.pageContainer}>
       <div className={baseStyles.pageHeader}>
@@ -401,6 +443,12 @@ export default function TasksPage() {
           </select>
         </div>
       </div>
+
+      {isError && (
+        <div style={{ color: '#dc2626', marginBottom: '16px', fontSize: '14px' }}>
+          Failed to load tasks. Please try again.
+        </div>
+      )}
 
       <DataTable<Task>
         data={tasks}
@@ -516,7 +564,7 @@ export default function TasksPage() {
             {editingId || !activeTaskForComments ? (
               <ActionButton
                 label={editingId ? 'Update' : 'Create'}
-                onClick={() => handleSubmit(new Event('submit') as unknown as React.FormEvent)}
+                onClick={() => formRef.current?.requestSubmit()}
                 color={ACTION_BUTTON_COLORS.success}
                 width={ACTION_BUTTON_SIZES.labelOnly.width}
                 height={ACTION_BUTTON_SIZES.labelOnly.height}
@@ -527,7 +575,7 @@ export default function TasksPage() {
         }
       >
         {(editingId || !activeTaskForComments) && (
-          <form onSubmit={handleSubmit}>
+          <form ref={formRef} onSubmit={handleSubmit}>
             {submitError && <div className={styles.inlineError}>{submitError}</div>}
 
             <FormField label="Title" required>
@@ -668,6 +716,54 @@ export default function TasksPage() {
                     <p className={styles.commentText}>{comment.comment || '-'}</p>
                   </div>
                 ))}
+            </div>
+
+            <FormField label="Attachment path / URL (no file upload yet — paste a stored path or link)">
+              <input
+                type="text"
+                value={attachmentPath}
+                onChange={(e) => setAttachmentPath(e.target.value)}
+                placeholder="e.g. /uploads/spec.pdf or https://..."
+              />
+            </FormField>
+            <div style={{ marginBottom: '10px' }}>
+              <ActionButton
+                label="Add Attachment"
+                onClick={handleAddAttachment}
+                color={ACTION_BUTTON_COLORS.primary}
+                width={ACTION_BUTTON_SIZES.labelOnly.width}
+                height={ACTION_BUTTON_SIZES.labelOnly.height}
+                loading={addAttachment.isPending}
+              />
+            </div>
+            <div className={styles.commentsPanel}>
+              {isAttachmentsLoading && <p>Loading attachments...</p>}
+              {!isAttachmentsLoading && attachments.length === 0 && <p>No attachments yet.</p>}
+              {!isAttachmentsLoading &&
+                attachments.map((att, index) => {
+                  const id = att.attachment_id || att.attachmentId || String(index);
+                  const path = att.file_path || att.filePath || '-';
+                  return (
+                    <div key={id} className={styles.commentItem} style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
+                      <p className={styles.commentText} style={{ margin: 0, wordBreak: 'break-all' }}>
+                        {path}
+                      </p>
+                      <ActionButton
+                        label="Remove"
+                        onClick={() =>
+                          deleteAttachment.mutate({
+                            taskId: activeTaskForComments,
+                            attachmentId: id,
+                          })
+                        }
+                        color={ACTION_BUTTON_COLORS.danger}
+                        width={ACTION_BUTTON_SIZES.labelOnly.width}
+                        height={ACTION_BUTTON_SIZES.labelOnly.height}
+                        disabled={deleteAttachment.isPending}
+                      />
+                    </div>
+                  );
+                })}
             </div>
           </>
         )}

@@ -87,11 +87,11 @@ function handleAuthResponse(response: any): any {
 
 export const organizationService = {
   create: async (payload: CreateOrganizationPayload) => {
-    const response = await apiClient<AuthResponse>(ENDPOINTS.CREATE, {
+    // Org create does not issue tokens — caller must sign in afterwards.
+    return apiClient<AuthResponse>(ENDPOINTS.CREATE, {
       method: "POST",
       body: payload,
     });
-    return handleAuthResponse(response);
   },
 
   login: async (payload: OrganizationLoginPayload) => {
@@ -108,14 +108,28 @@ export const organizationService = {
       body: payload,
     }),
 
-  logout: (refreshToken: string) =>
-    apiClient(ENDPOINTS.LOGOUT, {
-      method: "POST",
-      body: { refreshToken },
-    }).then(() => {
+  logout: async (refreshToken: string) => {
+    try {
+      await apiClient(ENDPOINTS.LOGOUT, {
+        method: "POST",
+        body: { refreshToken },
+      });
+    } finally {
       removeAccessToken();
       removeRefreshToken();
       removeOrganizationId();
+      removeAuthUser();
+    }
+  },
+
+  changeAdminPassword: (payload: {
+    organizationId: string;
+    oldPassword: string;
+    newPassword: string;
+  }) =>
+    apiClient<{ data: { message: string } }>("/api/v1/organizations/change-admin-password", {
+      method: "POST",
+      body: payload,
     }),
 
   refreshToken: (refreshToken: string) =>

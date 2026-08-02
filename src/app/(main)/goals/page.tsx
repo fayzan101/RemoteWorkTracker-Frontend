@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Edit, Trash2 } from 'lucide-react';
 import styles from '../main-pages.module.css';
 import DataTable from '@/components/DataTable';
@@ -9,17 +9,24 @@ import ConfirmDialog from '@/components/ConfirmDialog';
 import FormField from '@/components/FormField';
 import ActionButton from '@/components/ActionButton';
 import { ACTION_BUTTON_SIZES, ACTION_BUTTON_COLORS } from '@/constants/actionButtons';
-import { useGoalsList, useCreateGoal, useUpdateGoal, useDeleteGoal } from '@/services/goals/useGoals';
+import {
+  useGoalsList,
+  useCreateGoal,
+  useUpdateGoal,
+  useDeleteGoal,
+  useUpdateGoalProgress,
+} from '@/services/goals/useGoals';
 import { useUsersList } from '@/services/users/useUsers';
 import { useAuth } from '@/hooks';
 import { unwrapApiList } from '@/app/(main)/dashboard/dashboard-helpers';
 import type { Goal, CreateGoalPayload } from '@/types';
 
-const emptyForm: CreateGoalPayload = {
+const emptyForm: CreateGoalPayload & { progress: number } = {
   title: '',
   userId: '',
   description: '',
   deadline: '',
+  progress: 0,
 };
 
 function getGoalId(goal: Goal) {
@@ -39,21 +46,28 @@ function toDateInputValue(value?: string) {
 }
 
 export default function GoalsPage() {
+  const formRef = useRef<HTMLFormElement>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [formData, setFormData] = useState<CreateGoalPayload>(emptyForm);
+  const [formData, setFormData] = useState(emptyForm);
 
   const { organizationId } = useAuth();
-  const { data: response, isLoading } = useGoalsList(
-    { limit: 200, organizationId: organizationId ?? undefined },
+  const [statusFilter, setStatusFilter] = useState<'' | 'ON_TRACK' | 'AT_RISK'>('');
+  const { data: response, isLoading, isError } = useGoalsList(
+    {
+      limit: 200,
+      organizationId: organizationId ?? undefined,
+      ...(statusFilter ? { status: statusFilter } : {}),
+    },
     { enabled: !!organizationId }
   );
   const { data: usersResponse, isLoading: isUsersLoading, isError: isUsersError } = useUsersList();
   const createGoal = useCreateGoal();
   const updateGoal = useUpdateGoal(editingId || '');
+  const updateProgress = useUpdateGoalProgress(editingId || '');
   const deleteGoal = useDeleteGoal(deleteId || '');
 
   const goals = unwrapApiList<Goal>(response as { data?: unknown });
@@ -92,9 +106,20 @@ export default function GoalsPage() {
 
     try {
       if (editingId) {
-        await updateGoal.mutateAsync(formData);
+        await updateGoal.mutateAsync({
+          title: formData.title,
+          description: formData.description,
+          deadline: formData.deadline,
+        });
+        const progress = Math.min(100, Math.max(0, Number(formData.progress) || 0));
+        await updateProgress.mutateAsync({ progress });
       } else {
-        await createGoal.mutateAsync(formData);
+        await createGoal.mutateAsync({
+          title: formData.title,
+          userId: formData.userId,
+          description: formData.description,
+          deadline: formData.deadline,
+        });
       }
       setFormData(emptyForm);
       setEditingId(null);
@@ -115,6 +140,7 @@ export default function GoalsPage() {
       userId: resolvedUserId,
       description: goal.description,
       deadline: toDateInputValue(goal.deadline),
+      progress: typeof goal.progress === 'number' ? goal.progress : 0,
     });
     setSubmitError(null);
     setIsModalOpen(true);
@@ -133,7 +159,7 @@ export default function GoalsPage() {
       setIsDeleteDialogOpen(false);
       setDeleteId(null);
     } catch (error) {
-      console.error('Error:', error);
+      setSubmitError(error instanceof Error ? error.message : 'Failed to delete goal.');
     }
   };
 
@@ -156,13 +182,36 @@ export default function GoalsPage() {
           <h1 className={styles.pageTitle}>Goals</h1>
           <p className={styles.pageSubtitle}>Manage employee goals and track progress</p>
         </div>
-        <ActionButton 
-          label="Add Goal" 
+        <ActionButton
+          label="Add Goal"
           onClick={() => setIsModalOpen(true)}
           color={ACTION_BUTTON_COLORS.success}
           width={ACTION_BUTTON_SIZES.labelOnly.width}
           height={ACTION_BUTTON_SIZES.labelOnly.height}
         />
+      </div>
+
+      {isError && (
+        <div style={{ color: '#dc2626', marginBottom: '16px', fontSize: '14px' }}>
+          Failed to load goals. Please try again.
+        </div>
+      )}
+
+      <div className={styles.panelCard} style={{ marginBottom: '20px' }}>
+        <div className={styles.panelCardHeader}>
+          <div className={styles.panelCardTitle}>Filters</div>
+        </div>
+        <FormField label="Status">
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value as '' | 'ON_TRACK' | 'AT_RISK')}
+            style={{ maxWidth: '240px' }}
+          >
+            <option value="">All statuses</option>
+            <option value="ON_TRACK">On track</option>
+            <option value="AT_RISK">At risk</option>
+          </select>
+        </FormField>
       </div>
 
       <DataTable<Goal>
@@ -171,7 +220,7 @@ export default function GoalsPage() {
           { header: 'Goal Title', accessor: 'title', width: '25%' },
           {
             header: 'User',
-            accessor: (goal) => userLabelById.get(getGoalUserId(goal)) || getGoalUserId(goal) || '-',
+            accessor: (goal) => userLabelById.get(getGoalUserId(goal)) || 'Unknown employee',
             width: '20%',
           },
           { header: 'Description', accessor: 'description', width: '25%' },
@@ -221,16 +270,16 @@ export default function GoalsPage() {
         size="large"
         actions={
           <div style={{ display: 'flex', gap: '8px' }}>
-            <ActionButton 
-              label="Cancel" 
+            <ActionButton
+              label="Cancel"
               onClick={closeModal}
               color={ACTION_BUTTON_COLORS.secondary}
               width={ACTION_BUTTON_SIZES.labelOnly.width}
               height={ACTION_BUTTON_SIZES.labelOnly.height}
             />
-            <ActionButton 
+            <ActionButton
               label={editingId ? 'Update' : 'Create'}
-              onClick={() => handleSubmit(new Event('submit') as any)}
+              onClick={() => formRef.current?.requestSubmit()}
               color={ACTION_BUTTON_COLORS.success}
               width={ACTION_BUTTON_SIZES.labelOnly.width}
               height={ACTION_BUTTON_SIZES.labelOnly.height}
@@ -238,11 +287,9 @@ export default function GoalsPage() {
           </div>
         }
       >
-        <form onSubmit={handleSubmit}>
+        <form ref={formRef} onSubmit={handleSubmit}>
           {submitError && (
-            <div style={{ color: '#dc2626', marginBottom: '12px', fontSize: '14px' }}>
-              {submitError}
-            </div>
+            <div style={{ color: '#dc2626', marginBottom: '12px', fontSize: '14px' }}>{submitError}</div>
           )}
           <FormField label="Goal Title" required>
             <input
@@ -252,23 +299,23 @@ export default function GoalsPage() {
               required
             />
           </FormField>
-          <FormField label="User ID" required>
+          <FormField label="Employee" required>
             <select
               value={formData.userId}
               onChange={(e) => setFormData({ ...formData, userId: e.target.value })}
               required
-              disabled={isUsersLoading || userOptions.length === 0}
+              disabled={!!editingId || isUsersLoading || userOptions.length === 0}
             >
               <option value="">
                 {isUsersLoading
                   ? 'Loading users...'
                   : userOptions.length === 0
                     ? 'No users available. Please create users first.'
-                    : 'Select user'}
+                    : 'Select employee'}
               </option>
               {userOptions.map((user) => (
                 <option key={user.id} value={user.id}>
-                  {user.label} ({user.id})
+                  {user.label}
                 </option>
               ))}
             </select>
@@ -285,6 +332,18 @@ export default function GoalsPage() {
               rows={3}
             />
           </FormField>
+          {editingId && (
+            <FormField label="Progress (%)" required>
+              <input
+                type="number"
+                min={0}
+                max={100}
+                value={formData.progress}
+                onChange={(e) => setFormData({ ...formData, progress: Number(e.target.value) })}
+                required
+              />
+            </FormField>
+          )}
           <FormField label="Deadline" required>
             <input
               type="date"

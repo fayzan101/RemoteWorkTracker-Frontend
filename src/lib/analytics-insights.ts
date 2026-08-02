@@ -33,6 +33,14 @@ export type DashboardAiInsight = {
   smartFeatures: Record<string, string | number> | null;
   smartHistoryPoints: number | null;
   recommendations: string[];
+  /** Honest transparency fields — never imply ML when rules-only. */
+  scoringMode: 'rules' | 'hybrid' | string | null;
+  ruleEngineVersion: string | null;
+  modelVersion: string | null;
+  confidence: number | null;
+  dataQualityStatus: string | null;
+  createdAt: string | null;
+  explanations: Array<{ factor: string; contribution?: number; evidence?: string }> | null;
 };
 
 function parseBenchmark(raw: unknown): AdaptiveBenchmarkInsight | null {
@@ -119,6 +127,25 @@ export function parseAiReportBody(lr: Record<string, unknown> | undefined | null
     ? (rawRecs as unknown[]).filter((x): x is string => typeof x === 'string')
     : [];
 
+  const dq =
+    lr.data_quality && typeof lr.data_quality === 'object'
+      ? (lr.data_quality as Record<string, unknown>)
+      : null;
+
+  const explanationsRaw = lr.explanations;
+  let explanations: DashboardAiInsight['explanations'] = null;
+  if (Array.isArray(explanationsRaw)) {
+    explanations = explanationsRaw
+      .filter((x): x is Record<string, unknown> => Boolean(x) && typeof x === 'object')
+      .map((x) => ({
+        factor: typeof x.factor === 'string' ? x.factor : 'factor',
+        contribution: typeof x.contribution === 'number' ? x.contribution : undefined,
+        evidence: typeof x.evidence === 'string' ? x.evidence : undefined,
+      }));
+  }
+
+  const scoringModeRaw = typeof lr.scoring_mode === 'string' ? lr.scoring_mode : null;
+
   return {
     productivityScore: typeof lr.productivity_score === 'number' ? lr.productivity_score : null,
     summary: typeof lr.summary === 'string' ? lr.summary : null,
@@ -138,6 +165,13 @@ export function parseAiReportBody(lr: Record<string, unknown> | undefined | null
     smartFeatures: smart.features,
     smartHistoryPoints: smart.historyPoints,
     recommendations,
+    scoringMode: scoringModeRaw,
+    ruleEngineVersion: typeof lr.rule_engine_version === 'string' ? lr.rule_engine_version : null,
+    modelVersion: typeof lr.model_version === 'string' ? lr.model_version : null,
+    confidence: typeof lr.confidence === 'number' ? lr.confidence : null,
+    dataQualityStatus: dq && typeof dq.status === 'string' ? dq.status : null,
+    createdAt: typeof lr.created_at === 'string' ? lr.created_at : null,
+    explanations,
   };
 }
 
@@ -147,5 +181,36 @@ export function extractLatestAiReportForDashboard(
   if (!data || typeof data !== 'object') return null;
   const latest = data.latest_report;
   if (!latest || typeof latest !== 'object') return null;
-  return parseAiReportBody(latest as Record<string, unknown>);
+  const parsed = parseAiReportBody(latest as Record<string, unknown>);
+  if (!parsed) return null;
+  if (!parsed.createdAt && Array.isArray(data.history) && data.history[0]) {
+    const first = data.history[0] as Record<string, unknown>;
+    if (typeof first.created_at === 'string') parsed.createdAt = first.created_at;
+  }
+  return parsed;
+}
+
+/** Human label — never call rules-only output a "learned prediction". */
+export function scoringModeLabel(mode: string | null | undefined): string {
+  if (!mode) return 'Unknown scoring mode';
+  if (mode === 'rules') return 'Deterministic rules (not a learned model)';
+  if (mode === 'hybrid') return 'Hybrid (rules + optional ML signals)';
+  return mode;
+}
+
+export function isStaleReport(createdAt: string | null | undefined, maxAgeHours = 36): boolean {
+  if (!createdAt) return false;
+  const t = Date.parse(createdAt);
+  if (!Number.isFinite(t)) return false;
+  return Date.now() - t > maxAgeHours * 3600_000;
+}
+
+export function shouldWarnSparseOrLowConfidence(insight: DashboardAiInsight | null): boolean {
+  if (!insight) return false;
+  if (insight.confidence != null && insight.confidence < 0.45) return true;
+  if (insight.dataQualityStatus && /poor|sparse|degraded/i.test(insight.dataQualityStatus)) return true;
+  if (insight.telemetrySignalQuality && /sparse|limited|low/i.test(insight.telemetrySignalQuality)) {
+    return true;
+  }
+  return false;
 }

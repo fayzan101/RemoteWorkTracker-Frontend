@@ -7,9 +7,14 @@ import FormField from '@/components/FormField';
 import ActionButton from '@/components/ActionButton';
 import { useAuth } from '@/hooks';
 import { ACTION_BUTTON_SIZES, ACTION_BUTTON_COLORS } from '@/constants/actionButtons';
-import { useWellnessListAll } from '@/services/wellness/useWellness';
+import { useWellnessListAll, useLogMood } from '@/services/wellness/useWellness';
+import { useUsersList } from '@/services/users/useUsers';
 import { MOOD_OPTIONS } from '@/types/wellness';
-import type { WellnessLog, WellnessFilters } from '@/types';
+import type { CreateWellnessLogPayload, MoodType, WellnessLog, WellnessFilters } from '@/types';
+
+function todayIsoDate() {
+  return new Date().toISOString().split('T')[0];
+}
 
 interface WellnessTableRow {
   logId: string;
@@ -73,6 +78,14 @@ export default function WellnessPage() {
   const [limit] = useState(20);
   const [draftFilters, setDraftFilters] = useState<WellnessFilters>(defaultFilters);
   const [appliedFilters, setAppliedFilters] = useState<WellnessFilters>(defaultFilters);
+  const [moodForm, setMoodForm] = useState<CreateWellnessLogPayload>({
+    date: todayIsoDate(),
+    mood: 'NEUTRAL',
+    energyLevel: 3,
+    notes: '',
+  });
+  const [moodError, setMoodError] = useState<string | null>(null);
+  const [moodSuccess, setMoodSuccess] = useState<string | null>(null);
 
   const queryFilters = useMemo<WellnessFilters>(
     () => ({
@@ -85,10 +98,30 @@ export default function WellnessPage() {
   );
 
   const { data: response, isLoading } = useWellnessListAll(queryFilters);
+  const { data: usersResponse } = useUsersList();
+  const logMood = useLogMood();
 
   const logs = response?.data?.data || [];
   const meta = response?.data?.meta;
   const tableRows = useMemo(() => logs.map(toTableRow), [logs]);
+
+  const userNameById = useMemo(() => {
+    const map = new Map<string, string>();
+    const users = usersResponse?.data || [];
+    for (const user of users) {
+      const id = user.user_id || user.userId || user.id || '';
+      if (!id) continue;
+      const label = (user.name || user.email || '').trim();
+      if (label) map.set(id, label);
+    }
+    return map;
+  }, [usersResponse]);
+
+  const resolveWellnessName = (row: WellnessTableRow) => {
+    if (row.name?.trim()) return row.name.trim();
+    if (row.userId && userNameById.has(row.userId)) return userNameById.get(row.userId)!;
+    return 'Unknown employee';
+  };
 
   const moodStats = useMemo(
     () =>
@@ -124,6 +157,33 @@ export default function WellnessPage() {
 
   const latestMood = tableRows[0]?.mood ?? null;
 
+  const handleLogMood = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setMoodError(null);
+    setMoodSuccess(null);
+    if (!moodForm.date || !moodForm.mood) {
+      setMoodError('Date and mood are required.');
+      return;
+    }
+    try {
+      await logMood.mutateAsync({
+        date: moodForm.date,
+        mood: moodForm.mood,
+        energyLevel: moodForm.energyLevel,
+        notes: moodForm.notes?.trim() || undefined,
+      });
+      setMoodSuccess('Mood logged successfully.');
+      setMoodForm({
+        date: todayIsoDate(),
+        mood: 'NEUTRAL',
+        energyLevel: 3,
+        notes: '',
+      });
+    } catch (error) {
+      setMoodError(error instanceof Error ? error.message : 'Failed to log mood.');
+    }
+  };
+
   const handleApplyFilters = () => {
     setPage(1);
     setAppliedFilters({ ...draftFilters });
@@ -152,7 +212,7 @@ export default function WellnessPage() {
       <div className={styles.pageHeader}>
         <div>
           <h1 className={styles.pageTitle}>Wellness</h1>
-          <p className={styles.pageSubtitle}>Mood logs are collected from mobile and visualized here.</p>
+          <p className={styles.pageSubtitle}>Log mood and review wellness trends across the team.</p>
         </div>
       </div>
 
@@ -176,6 +236,77 @@ export default function WellnessPage() {
       </div>
 
       <div className={styles.featureGrid}>
+        <div className={styles.panelCard}>
+          <div className={styles.panelCardHeader}>
+            <div className={styles.panelCardTitle}>Log mood</div>
+            <p className={styles.panelCardHint}>Record how you are feeling today.</p>
+          </div>
+          <form onSubmit={handleLogMood} style={{ display: 'grid', gap: '10px' }}>
+            <FormField label="Date" required>
+              <input
+                type="date"
+                value={moodForm.date}
+                onChange={(e) => setMoodForm((prev) => ({ ...prev, date: e.target.value }))}
+                required
+              />
+            </FormField>
+            <FormField label="Mood" required>
+              <select
+                value={moodForm.mood}
+                onChange={(e) =>
+                  setMoodForm((prev) => ({ ...prev, mood: e.target.value as MoodType }))
+                }
+                required
+              >
+                {MOOD_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </FormField>
+            <FormField label="Energy level (1-5)">
+              <input
+                type="number"
+                min={1}
+                max={5}
+                value={moodForm.energyLevel ?? ''}
+                onChange={(e) =>
+                  setMoodForm((prev) => ({
+                    ...prev,
+                    energyLevel: e.target.value === '' ? undefined : Number(e.target.value),
+                  }))
+                }
+              />
+            </FormField>
+            <FormField label="Notes">
+              <textarea
+                value={moodForm.notes || ''}
+                onChange={(e) => setMoodForm((prev) => ({ ...prev, notes: e.target.value }))}
+                rows={2}
+              />
+            </FormField>
+            {moodError && <div style={{ color: '#dc2626', fontSize: '14px' }}>{moodError}</div>}
+            {moodSuccess && <div style={{ color: '#16a34a', fontSize: '14px' }}>{moodSuccess}</div>}
+            <button
+              type="submit"
+              disabled={logMood.isPending}
+              style={{
+                justifySelf: 'start',
+                padding: '8px 16px',
+                borderRadius: '8px',
+                border: 'none',
+                background: ACTION_BUTTON_COLORS.success,
+                color: '#fff',
+                fontWeight: 600,
+                cursor: logMood.isPending ? 'not-allowed' : 'pointer',
+              }}
+            >
+              {logMood.isPending ? 'Saving...' : 'Log mood'}
+            </button>
+          </form>
+        </div>
+
         <div className={styles.panelCard}>
           <div className={styles.panelRow}>
             <div className={styles.panelCardHeader}>
@@ -298,7 +429,7 @@ export default function WellnessPage() {
           },
           {
             header: 'Employee',
-            accessor: (log) => log.name || log.userId || '-',
+            accessor: (log) => resolveWellnessName(log),
             width: '20%',
           },
           {

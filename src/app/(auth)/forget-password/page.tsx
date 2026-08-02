@@ -33,7 +33,7 @@ const ForgetPassword = () => {
           <div className={`${common.formWrap} ${common.formWrapFull} ${common.formWrapCompact}`}>
             <h1 className={`${common.title} ${common.titleFull}`}>Forget Password</h1>
             <p className={`${common.subtitle} ${common.subtitleFull}`}>
-              Enter your email. We will send a link to reset your password
+              Enter your admin email. We will send a 6-digit OTP to reset your password.
             </p>
 
             <form className={`${common.form} ${common.formFull} ${common.tightForm}`} onSubmit={handleSubmit}>

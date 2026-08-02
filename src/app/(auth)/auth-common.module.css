@@ -87,8 +87,7 @@
 }
 
 .illustrationPanelFull {
-  /* background: linear-gradient(135deg, #0b112030 0%, #1e293b30 45%, #1d4ed850 100%); */
-  background: transparent;
+  background: #0f172a;
   animation: floatIn 0.7s ease both;
 }
 
@@ -98,8 +97,7 @@
 }
 
 .illustrationPanelFull .illustrationImage {
-  mix-blend-mode: screen;
-  opacity: 0.72;
+  opacity: 0.9;
 }
 
 .formPanel {
@@ -158,20 +156,37 @@
   gap: 20px;
 }
 
-.inputFull {
-  background: #111827;
-  border: 1px solid rgba(100, 116, 139, 0.85);
+.input.inputFull {
+  background: #1e293b;
+  border: 1px solid rgba(148, 163, 184, 0.55);
   color: #f8fafc;
+  -webkit-text-fill-color: #f8fafc;
+  caret-color: #f8fafc;
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.4);
+  color-scheme: dark;
 }
 
-.inputFull:focus {
+.input.inputFull:focus {
   border-color: rgba(56, 189, 248, 0.95);
+  background: #0f172a;
+  color: #f8fafc;
+  -webkit-text-fill-color: #f8fafc;
   box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.25);
 }
 
-.inputFull::placeholder {
-  color: #cbd5f5;
+.input.inputFull::placeholder {
+  color: #94a3b8;
+  -webkit-text-fill-color: #94a3b8;
+  opacity: 1;
+}
+
+.input.inputFull:-webkit-autofill,
+.input.inputFull:-webkit-autofill:hover,
+.input.inputFull:-webkit-autofill:focus {
+  -webkit-text-fill-color: #f8fafc;
+  caret-color: #f8fafc;
+  box-shadow: 0 0 0 1000px #1e293b inset;
+  transition: background-color 99999s ease-in-out 0s;
 }
 
 .submitButtonFull {
@@ -207,9 +222,11 @@
   color: #dbeafe;
 }
 
-.inputErrorFull {
+.input.inputErrorFull {
   border-color: #f87171;
-  background: #111827;
+  background: #1e293b;
+  color: #f8fafc;
+  -webkit-text-fill-color: #f8fafc;
 }
 
 .formWrapCompact {

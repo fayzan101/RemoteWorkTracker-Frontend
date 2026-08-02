@@ -19,7 +19,7 @@ export const departmentsService = {
   create: (payload: CreateDepartmentPayload) =>
     apiClient<{ data: Department }>(ENDPOINTS.CREATE, {
       method: "POST",
-      body: payload,
+      body: { name: payload.name },
     }),
 
   getById: (id: string) =>

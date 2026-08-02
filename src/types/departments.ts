@@ -8,7 +8,6 @@ export interface Department {
 
 export interface CreateDepartmentPayload {
   name: string;
-  organizationId?: string;
 }
 
 export interface UpdateDepartmentPayload {
@@ -16,6 +15,6 @@ export interface UpdateDepartmentPayload {
 }
 
 export interface ReassignUsersPayload {
-  userIds: string[];
-  targetDepartmentId: string;
+  fromDepartmentId: string;
+  toDepartmentId: string;
 }

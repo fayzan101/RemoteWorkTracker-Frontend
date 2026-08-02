@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import styles from '../../main-pages.module.css';
 import DataTable from '@/components/DataTable';
 import Modal from '@/components/Modal';
@@ -8,8 +8,8 @@ import FormField from '@/components/FormField';
 import ActionButton from '@/components/ActionButton';
 import { ACTION_BUTTON_SIZES, ACTION_BUTTON_COLORS } from '@/constants/actionButtons';
 import { useCoursesList, useEnrollInCourse, useEnrollmentsList } from '@/services/learning/useLearning';
-import { useUsersList, useUserDetail } from '@/services/users/useUsers';
-import type { Course, CourseEnrollment } from '@/types';
+import { useUsersList } from '@/services/users/useUsers';
+import type { Course, CourseEnrollment, EnrollmentListFilters } from '@/types';
 
 type MaybeListResponse<T> = { data?: T[] } | T[] | undefined;
 
@@ -19,14 +19,27 @@ function resolveListData<T>(payload: MaybeListResponse<T>) {
 }
 
 export default function EnrollmentsPage() {
+  const formRef = useRef<HTMLFormElement>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [selectedCourseId, setSelectedCourseId] = useState('');
   const [selectedUserId, setSelectedUserId] = useState('');
+  const [statusFilter, setStatusFilter] = useState<EnrollmentListFilters['status'] | ''>('');
+  const [filterCourseId, setFilterCourseId] = useState('');
+  const [filterUserId, setFilterUserId] = useState('');
+
+  const enrollmentFilters = useMemo<EnrollmentListFilters>(
+    () => ({
+      ...(statusFilter ? { status: statusFilter } : {}),
+      ...(filterCourseId ? { courseId: filterCourseId } : {}),
+      ...(filterUserId ? { userId: filterUserId } : {}),
+    }),
+    [statusFilter, filterCourseId, filterUserId]
+  );
 
   const { data: coursesResponse, isLoading: isCoursesLoading, isError: isCoursesError } = useCoursesList();
   const { data: usersResponse, isLoading: isUsersLoading, isError: isUsersError } = useUsersList();
-  const { data: enrollmentsResponse, isLoading: isEnrollmentsLoading } = useEnrollmentsList();
+  const { data: enrollmentsResponse, isLoading: isEnrollmentsLoading } = useEnrollmentsList(enrollmentFilters);
 
   const enrollInCourse = useEnrollInCourse();
 
@@ -100,7 +113,6 @@ export default function EnrollmentsPage() {
     setSelectedUserId('');
   };
 
-  const getEnrollmentId = (enrollment: CourseEnrollment) => enrollment.enrollment_id || enrollment.enrollmentId || '-';
   const getEnrollmentCourseId = (enrollment: CourseEnrollment) => enrollment.course_id || enrollment.courseId || '';
   const getEnrollmentUserId = (enrollment: CourseEnrollment) => enrollment.user_id || enrollment.userId || '';
   const getEnrollmentCreatedAt = (enrollment: CourseEnrollment) => enrollment.created_at || enrollment.createdAt || '';
@@ -121,14 +133,49 @@ export default function EnrollmentsPage() {
         />
       </div>
 
+      <div className={styles.panelCard} style={{ marginBottom: '20px' }}>
+        <div className={styles.panelCardHeader}>
+          <div className={styles.panelCardTitle}>Filters</div>
+          <p className={styles.panelCardHint}>Narrow enrollments by status, course, or employee.</p>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px' }}>
+          <FormField label="Status">
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter((e.target.value || '') as EnrollmentListFilters['status'] | '')}
+            >
+              <option value="">All statuses</option>
+              <option value="ENROLLED">Enrolled</option>
+              <option value="COMPLETED">Completed</option>
+              <option value="DROPPED">Dropped</option>
+            </select>
+          </FormField>
+          <FormField label="Course">
+            <select value={filterCourseId} onChange={(e) => setFilterCourseId(e.target.value)}>
+              <option value="">All courses</option>
+              {courseOptions.map((course) => (
+                <option key={course.id} value={course.id}>
+                  {course.label}
+                </option>
+              ))}
+            </select>
+          </FormField>
+          <FormField label="Employee">
+            <select value={filterUserId} onChange={(e) => setFilterUserId(e.target.value)}>
+              <option value="">All employees</option>
+              {userOptions.map((user) => (
+                <option key={user.id} value={user.id}>
+                  {user.label}
+                </option>
+              ))}
+            </select>
+          </FormField>
+        </div>
+      </div>
+
       <DataTable<CourseEnrollment>
         data={enrollments}
         columns={[
-          // {
-          //   header: 'Enrollment ID',
-          //   accessor: (enrollment) => getEnrollmentId(enrollment),
-          //   width: '20%',
-          // },
           {
             header: 'Course',
             accessor: (enrollment) => {
@@ -180,7 +227,7 @@ export default function EnrollmentsPage() {
             />
             <ActionButton
               label="Enroll"
-              onClick={() => handleSubmit(new Event('submit') as any)}
+              onClick={() => formRef.current?.requestSubmit()}
               color={ACTION_BUTTON_COLORS.success}
               width={ACTION_BUTTON_SIZES.labelOnly.width}
               height={ACTION_BUTTON_SIZES.labelOnly.height}
@@ -188,7 +235,7 @@ export default function EnrollmentsPage() {
           </div>
         }
       >
-        <form onSubmit={handleSubmit}>
+        <form ref={formRef} onSubmit={handleSubmit}>
           {submitError && (
             <div style={{ color: '#dc2626', marginBottom: '12px', fontSize: '14px' }}>
               {submitError}

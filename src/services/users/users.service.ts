@@ -23,10 +23,17 @@ export const usersService = {
       body: payload,
     }),
 
-  getById: (id: string) =>
-    apiClient<User>(ENDPOINTS.GET.replace(":id", id), {
-      method: "GET",
-    }),
+  getById: async (id: string) => {
+    const listed = await apiClient<{ data: User[] }>(ENDPOINTS.LIST, { method: "GET" });
+    const users = listed?.data ?? [];
+    const found = users.find(
+      (u) => u.user_id === id || u.userId === id || u.id === id
+    );
+    if (!found) {
+      throw new Error("User not found");
+    }
+    return found;
+  },
 
   update: (id: string, payload: UpdateUserPayload) =>
     apiClient<User>(ENDPOINTS.UPDATE.replace(":id", id), {

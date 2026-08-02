@@ -34,10 +34,9 @@ const SignIn = () => {
         password,
       },
       {
-        onSuccess: (data: any) => {
-          // Show success toast and redirect
-          toast.success("Sign in successful! Redirecting...");
-          setTimeout(() => router.push("/dashboard"), 3000);
+        onSuccess: () => {
+          toast.success("Sign in successful!");
+          router.push("/dashboard");
         },
         onError: (err: any) => {
           // Error toast is already shown by apiClient
@@ -53,12 +52,13 @@ const SignIn = () => {
       <div className={`${common.authCard} ${common.authCardFull}`}>
         <div className={`${common.illustrationPanel} ${common.illustrationPanelFull}`}>
           <Image
-            src="/images/SignIn.png"
+            src="/images/SignIn.webp"
             alt="Workspace sign in illustration"
             fill
             sizes="(max-width: 1023px) 0px, 59vw"
             className={common.illustrationImage}
             priority
+            quality={75}
           />
         </div>
 

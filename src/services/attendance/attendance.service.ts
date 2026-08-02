@@ -1,9 +1,19 @@
 import { apiClient } from "@/lib/api-client";
-import type { AttendanceFilters, AttendanceListResponse, AttendanceLog } from "@/types";
+import type {
+  AttendanceFilters,
+  AttendanceListResponse,
+  AttendanceLog,
+  CreateGeoFencePayload,
+  GeoFence,
+} from "@/types";
 
 const ENDPOINTS = {
   LIST: "/api/v1/attendance",
   LIST_MY: "/api/v1/attendance/me",
+  CHECK_IN: "/api/v1/attendance/check-in",
+  CHECK_OUT: "/api/v1/attendance/check-out",
+  GEO_FENCES: "/api/v1/attendance/geo-fences",
+  GEO_FENCE: "/api/v1/attendance/geo-fences/:id",
 };
 
 export const attendanceService = {
@@ -34,4 +44,35 @@ export const attendanceService = {
 
     return apiClient<{ data: AttendanceListResponse | AttendanceLog[] }>(url, { method: "GET" });
   },
+
+  checkIn: (payload: {
+    latitude: number;
+    longitude: number;
+    ipAddress: string;
+    deviceId?: string;
+  }) =>
+    apiClient<{ data: AttendanceLog }>(ENDPOINTS.CHECK_IN, {
+      method: "POST",
+      body: payload,
+    }),
+
+  checkOut: (payload: { sessionId: string; deviceId?: string }) =>
+    apiClient<{ data: AttendanceLog }>(ENDPOINTS.CHECK_OUT, {
+      method: "POST",
+      body: payload,
+    }),
+
+  listGeoFences: () =>
+    apiClient<{ data: GeoFence[] }>(ENDPOINTS.GEO_FENCES, { method: "GET" }),
+
+  createGeoFence: (payload: CreateGeoFencePayload) =>
+    apiClient<{ data: GeoFence }>(ENDPOINTS.GEO_FENCES, {
+      method: "POST",
+      body: payload,
+    }),
+
+  deleteGeoFence: (id: string) =>
+    apiClient<{ data: { message: string } }>(ENDPOINTS.GEO_FENCE.replace(":id", id), {
+      method: "DELETE",
+    }),
 };

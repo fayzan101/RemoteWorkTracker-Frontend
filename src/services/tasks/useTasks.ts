@@ -6,6 +6,7 @@ const QUERY_KEYS = {
   list: (filters?: TaskFilters) => ["tasks", "list", filters],
   detail: (id: string) => ["tasks", "detail", id],
   comments: (taskId: string) => ["tasks", "comments", taskId],
+  attachments: (taskId: string) => ["tasks", "attachments", taskId],
 };
 
 export function useTasksList(filters?: TaskFilters) {
@@ -72,6 +73,37 @@ export function useAddTaskComment() {
       tasksService.addComment(taskId, comment),
     onSuccess: (_, { taskId }) => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.comments(taskId) });
+    },
+  });
+}
+
+export function useTaskAttachments(taskId: string) {
+  return useQuery({
+    queryKey: QUERY_KEYS.attachments(taskId),
+    queryFn: () => tasksService.listAttachments(taskId),
+    staleTime: 1000 * 60 * 2,
+    enabled: !!taskId,
+  });
+}
+
+export function useAddTaskAttachment() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ taskId, filePath }: { taskId: string; filePath: string }) =>
+      tasksService.addAttachment(taskId, filePath),
+    onSuccess: (_, { taskId }) => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.attachments(taskId) });
+    },
+  });
+}
+
+export function useDeleteTaskAttachment() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ taskId, attachmentId }: { taskId: string; attachmentId: string }) =>
+      tasksService.deleteAttachment(taskId, attachmentId),
+    onSuccess: (_, { taskId }) => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.attachments(taskId) });
     },
   });
 }

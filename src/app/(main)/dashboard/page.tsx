@@ -2,6 +2,7 @@
 
 import type { ReactNode } from 'react';
 import { useMemo, useState } from 'react';
+import Link from 'next/link';
 import { useQueries, useQuery } from '@tanstack/react-query';
 import styles from './dashboard-page.module.css';
 import { useAuth } from '@/hooks';
@@ -87,6 +88,7 @@ function CardSection({
   title,
   subtitle,
   action,
+  actionHref,
   children,
   icon,
   iconTone,
@@ -94,6 +96,7 @@ function CardSection({
   title: string;
   subtitle: string;
   action?: string;
+  actionHref?: string;
   children: ReactNode;
   icon: ReactNode;
   iconTone: string;
@@ -110,10 +113,10 @@ function CardSection({
             <p className={styles.cardSubtitle}>{subtitle}</p>
           </div>
         </div>
-        {action ? (
-          <button className={styles.cardAction} type="button">
+        {action && actionHref ? (
+          <Link href={actionHref} className={styles.cardAction}>
             {action}
-          </button>
+          </Link>
         ) : null}
       </div>
       <div className={styles.cardBody}>{children}</div>
@@ -129,6 +132,7 @@ function StatTile({
   toneEnd,
   icon,
   bars,
+  trend = 'neutral',
 }: {
   title: string;
   value: string;
@@ -137,7 +141,9 @@ function StatTile({
   toneEnd: string;
   icon: string;
   bars?: number[];
+  trend?: 'up' | 'down' | 'neutral';
 }) {
+  const arrow = trend === 'down' ? '▼' : trend === 'up' ? '▲' : '•';
   return (
     <article
       className={styles.statCard}
@@ -148,11 +154,11 @@ function StatTile({
           <span aria-hidden="true">{icon}</span>
           <span>{title}</span>
         </div>
-        {bars ? <MiniBars bars={bars} /> : null}
+        {bars && bars.length > 0 ? <MiniBars bars={bars} /> : null}
       </div>
       <p className={styles.statValue}>{value}</p>
       <div className={styles.statChange}>
-        <span>▲</span>
+        <span aria-hidden="true">{arrow}</span>
         <span>{change}</span>
       </div>
     </article>
@@ -458,7 +464,8 @@ export default function DashboardPage() {
 
   const chartBars = useMemo(() => {
     const hrs = productivityByDay.map((p) => p.hours);
-    return miniBarsFromSeries(hrs.length ? hrs : [1, 2, 3, 4, 5, 6, 7]);
+    if (!hrs.length || hrs.every((h) => !h)) return [];
+    return miniBarsFromSeries(hrs);
   }, [productivityByDay]);
 
   const employees = useMemo(() => {
@@ -502,7 +509,6 @@ export default function DashboardPage() {
   const statCards = useMemo(() => {
     const members = summary?.people.members ?? orgUsers.length;
     const withData = summary?.people.withAgentDataInPeriod ?? 0;
-    const coverage = summary?.telemetry.coverageRatio ?? 0;
     return [
       {
         title: 'Total Employees',
@@ -512,6 +518,7 @@ export default function DashboardPage() {
         toneEnd: '#1ea7ff',
         icon: '●',
         bars: chartBars,
+        trend: 'neutral' as const,
       },
       {
         title: 'Active members (MTD)',
@@ -521,6 +528,7 @@ export default function DashboardPage() {
         toneStart: '#0ea5c7',
         toneEnd: '#14b8a6',
         icon: '◌',
+        trend: 'neutral' as const,
       },
       {
         title: 'Avg task completion',
@@ -530,6 +538,10 @@ export default function DashboardPage() {
         toneEnd: '#22c55e',
         icon: '▲',
         bars: chartBars,
+        trend: (completionDelta < 0 ? 'down' : completionDelta > 0 ? 'up' : 'neutral') as
+          | 'up'
+          | 'down'
+          | 'neutral',
       },
       {
         title: 'Active projects',
@@ -538,6 +550,7 @@ export default function DashboardPage() {
         toneStart: '#7c3aed',
         toneEnd: '#a855f7',
         icon: '◧',
+        trend: 'neutral' as const,
       },
       {
         title: 'Payroll (month)',
@@ -546,6 +559,7 @@ export default function DashboardPage() {
         toneStart: '#f59e0b',
         toneEnd: '#fb923c',
         icon: '$',
+        trend: 'neutral' as const,
       },
       {
         title: 'Wellness index',
@@ -554,6 +568,7 @@ export default function DashboardPage() {
         toneStart: '#f43f5e',
         toneEnd: '#fb7185',
         icon: '♥',
+        trend: 'neutral' as const,
       },
     ];
   }, [
@@ -686,6 +701,8 @@ export default function DashboardPage() {
             <CardSection
               title="Employees Overview"
               subtitle="Merged users, month-to-date agent rollups (UTC), and task completion (analytics)"
+              action="Manage"
+              actionHref="/users"
               icon="◉"
               iconTone="linear-gradient(135deg, #2563eb, #06b6d4)"
             >
@@ -708,9 +725,6 @@ export default function DashboardPage() {
                             <p className={styles.personRole}>{employee.role}</p>
                           </div>
                         </div>
-                        <button className={styles.ghostButton} type="button" aria-label="More actions">
-                          •••
-                        </button>
                       </div>
 
                       <div className={styles.employeeMeta}>

@@ -6,6 +6,7 @@ const ENDPOINTS = {
   MARK_READ: "/api/v1/notifications/:id/read",
   MARK_ALL_READ: "/api/v1/notifications/read-all",
   DELETE: "/api/v1/notifications/:id",
+  PUSH_TOKEN: "/api/v1/notifications/push-token",
 };
 
 export const notificationsService = {
@@ -32,5 +33,17 @@ export const notificationsService = {
   delete: (id: string) =>
     apiClient<{ data: { message: string } }>(ENDPOINTS.DELETE.replace(":id", id), {
       method: "DELETE",
+    }),
+
+  registerPushToken: (token: string, platform?: string) =>
+    apiClient<{ data: { message?: string } }>(ENDPOINTS.PUSH_TOKEN, {
+      method: "POST",
+      body: { token, platform },
+    }),
+
+  unregisterPushToken: (token: string) =>
+    apiClient<{ data: { message?: string } }>(ENDPOINTS.PUSH_TOKEN, {
+      method: "DELETE",
+      body: { token },
     }),
 };

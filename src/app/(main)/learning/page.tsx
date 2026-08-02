@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Edit, Trash2 } from 'lucide-react';
+import { toast } from 'react-toastify';
 import styles from '../main-pages.module.css';
 import DataTable from '@/components/DataTable';
 import Modal from '@/components/Modal';
@@ -20,6 +21,7 @@ const emptyForm: CreateCoursePayload = {
 };
 
 export default function LearningPage() {
+  const formRef = useRef<HTMLFormElement>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -111,7 +113,9 @@ export default function LearningPage() {
       setIsDeleteDialogOpen(false);
       setDeleteId(null);
     } catch (error) {
-      console.error('Error:', error);
+      const message = error instanceof Error ? error.message : 'Failed to delete course.';
+      setSubmitError(message);
+      toast.error(message);
     }
   };
 
@@ -203,7 +207,7 @@ export default function LearningPage() {
             />
             <ActionButton 
               label={editingId ? 'Update' : 'Create'}
-              onClick={() => handleSubmit(new Event('submit') as any)}
+              onClick={() => formRef.current?.requestSubmit()}
               color={ACTION_BUTTON_COLORS.success}
               width={ACTION_BUTTON_SIZES.labelOnly.width}
               height={ACTION_BUTTON_SIZES.labelOnly.height}
@@ -211,7 +215,7 @@ export default function LearningPage() {
           </div>
         }
       >
-        <form onSubmit={handleSubmit}>
+        <form ref={formRef} onSubmit={handleSubmit}>
           {submitError && (
             <div style={{ color: '#dc2626', marginBottom: '12px', fontSize: '14px' }}>
               {submitError}

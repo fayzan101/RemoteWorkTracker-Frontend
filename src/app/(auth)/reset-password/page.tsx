@@ -6,21 +6,39 @@ import common from "../auth-common.module.css";
 import { useOrganizationResetPassword } from "services/organization/useOrganization";
 import { useRouter } from "next/navigation";
 
+const OTP_LENGTH = 6;
+
 const ResetPassword = () => {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [code, setCode] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [validationError, setValidationError] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const router = useRouter();
   const { mutate, isPending, isSuccess, isError, error } = useOrganizationResetPassword();
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (newPassword !== confirmPassword) return;
+    setValidationError("");
+
+    const trimmedCode = code.trim();
+    if (!/^\d{6}$/.test(trimmedCode)) {
+      setValidationError("Enter the 6-digit code from your email.");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setValidationError("Passwords do not match.");
+      return;
+    }
+    if (!newPassword.trim()) {
+      setValidationError("New password is required.");
+      return;
+    }
+
     mutate(
-      { resetCode: code, newPassword },
+      { resetCode: trimmedCode, newPassword },
       {
         onSuccess: () => {
           setSubmitted(true);
@@ -51,24 +69,22 @@ const ResetPassword = () => {
                   id="code"
                   name="code"
                   type="text"
-                  placeholder="12345678"
+                  inputMode="numeric"
+                  pattern="\d{6}"
+                  maxLength={6}
+                  placeholder="123456"
                   className={`${common.input} ${common.inputFull}`}
                   value={code}
-                  onChange={e => setCode(e.target.value)}
+                  onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, OTP_LENGTH))}
                   required
                   disabled={isPending}
                 />
               </div>
 
               <div className={common.fieldBlock}>
-                <div className={common.labelRow}>
-                  <label htmlFor="newPassword" className={`${common.label} ${common.labelFull}`}>
-                    New Password
-                  </label>
-                  <span className={`${common.strengthText} ${common.strengthTextFull}`}>
-                    Strength: <span>Strong</span>
-                  </span>
-                </div>
+                <label htmlFor="newPassword" className={`${common.label} ${common.labelFull}`}>
+                  New Password
+                </label>
                 <div className={common.passwordWrap}>
                   <input
                     id="newPassword"
@@ -77,7 +93,7 @@ const ResetPassword = () => {
                     placeholder="Enter new password"
                     className={`${common.input} ${common.inputFull}`}
                     value={newPassword}
-                    onChange={e => setNewPassword(e.target.value)}
+                    onChange={(e) => setNewPassword(e.target.value)}
                     required
                     disabled={isPending}
                   />
@@ -112,7 +128,7 @@ const ResetPassword = () => {
                     placeholder="Confirm password"
                     className={`${common.input} ${common.inputFull}`}
                     value={confirmPassword}
-                    onChange={e => setConfirmPassword(e.target.value)}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
                     required
                     disabled={isPending}
                   />
@@ -134,6 +150,12 @@ const ResetPassword = () => {
                   </button>
                 </div>
               </div>
+
+              {validationError && (
+                <div className={`${common.helperText} ${common.helperTextFull}`} style={{ color: "red" }}>
+                  {validationError}
+                </div>
+              )}
 
               <button type="submit" className={`${common.submitButton} ${common.submitButtonFull}`} disabled={isPending}>
                 {isPending ? "Resetting..." : "Reset password"}

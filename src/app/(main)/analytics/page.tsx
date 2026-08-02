@@ -29,6 +29,9 @@ import type { User } from '@/types';
 import {
   extractLatestAiReportForDashboard,
   parseAiReportBody,
+  scoringModeLabel,
+  isStaleReport,
+  shouldWarnSparseOrLowConfidence,
   type DashboardAiInsight,
 } from '@/lib/analytics-insights';
 
@@ -434,6 +437,61 @@ export default function AnalyticsPage() {
 
               {appliedEmployeeId && displayInsight && (
                 <>
+                  <div className={styles.transparencyBar} role="status">
+                    <div className={styles.transparencyItem}>
+                      <strong>Scoring</strong>
+                      <span>{scoringModeLabel(displayInsight.scoringMode)}</span>
+                    </div>
+                    {displayInsight.ruleEngineVersion && (
+                      <div className={styles.transparencyItem}>
+                        <strong>Rules</strong>
+                        <span>v{displayInsight.ruleEngineVersion}</span>
+                      </div>
+                    )}
+                    {displayInsight.modelVersion && displayInsight.scoringMode === 'hybrid' && (
+                      <div className={styles.transparencyItem}>
+                        <strong>Model</strong>
+                        <span>{displayInsight.modelVersion}</span>
+                      </div>
+                    )}
+                    {displayInsight.confidence != null && (
+                      <div className={styles.transparencyItem}>
+                        <strong>Confidence</strong>
+                        <span>{Math.round(displayInsight.confidence * 100)}%</span>
+                      </div>
+                    )}
+                    {displayInsight.dataQualityStatus && (
+                      <div className={styles.transparencyItem}>
+                        <strong>Data quality</strong>
+                        <span>{displayInsight.dataQualityStatus}</span>
+                      </div>
+                    )}
+                    {displayInsight.createdAt && (
+                      <div className={styles.transparencyItem}>
+                        <strong>Report</strong>
+                        <span>
+                          {displayInsight.createdAt.slice(0, 16).replace('T', ' ')}
+                          {isStaleReport(displayInsight.createdAt) ? ' · stale' : ''}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {(shouldWarnSparseOrLowConfidence(displayInsight) ||
+                    isStaleReport(displayInsight.createdAt)) && (
+                    <div className={styles.warnBanner}>
+                      <ShieldAlert size={16} aria-hidden />
+                      <span>
+                        {isStaleReport(displayInsight.createdAt)
+                          ? 'This report may be stale (older than 36 hours). '
+                          : ''}
+                        {shouldWarnSparseOrLowConfidence(displayInsight)
+                          ? 'Sparse or low-quality telemetry lowers confidence — treat scores as directional, not definitive.'
+                          : ''}
+                      </span>
+                    </div>
+                  )}
+
                   <div className={styles.aiTop}>
                     {displayInsight.productivityScore != null ? (
                       <ProductivityGauge value={displayInsight.productivityScore} />

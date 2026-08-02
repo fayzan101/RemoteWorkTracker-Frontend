@@ -68,3 +68,18 @@ export interface AttendanceFilters {
   limit?: number;
   organizationId?: string;
 }
+
+export interface GeoFence {
+  fenceId: string;
+  name: string;
+  latitude: number;
+  longitude: number;
+  radiusMeters: number;
+}
+
+export interface CreateGeoFencePayload {
+  name: string;
+  latitude: number;
+  longitude: number;
+  radiusMeters: number;
+}

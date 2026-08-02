@@ -1,7 +1,7 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import { Edit, Trash2 } from 'lucide-react';
+import { useMemo, useRef, useState } from 'react';
+import { Edit, Trash2, Users } from 'lucide-react';
 import styles from '../main-pages.module.css';
 import DataTable from '@/components/DataTable';
 import Modal from '@/components/Modal';
@@ -10,7 +10,15 @@ import FormField from '@/components/FormField';
 import ActionButton from '@/components/ActionButton';
 import { useAuth } from '@/hooks';
 import { ACTION_BUTTON_SIZES, ACTION_BUTTON_COLORS } from '@/constants/actionButtons';
-import { useProjectsList, useCreateProject, useUpdateProject, useDeleteProject } from '@/services/projects/useProjects';
+import {
+  useProjectsList,
+  useCreateProject,
+  useUpdateProject,
+  useDeleteProject,
+  useProjectMembers,
+  useAddProjectMember,
+  useRemoveProjectMember,
+} from '@/services/projects/useProjects';
 import { useUsersList, useUsersManagers } from '@/services/users/useUsers';
 import type { Project, CreateProjectPayload, User } from '@/types';
 
@@ -56,11 +64,16 @@ function ManagerNameCell({
 }
 
 export default function ProjectsPage() {
+  const formRef = useRef<HTMLFormElement>(null);
   const { organizationId } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [membersProjectId, setMembersProjectId] = useState<string | null>(null);
+  const [memberUserId, setMemberUserId] = useState('');
+  const [memberRole, setMemberRole] = useState('developer');
+  const [membersError, setMembersError] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [formData, setFormData] = useState<CreateProjectPayload>({
     name: '',
@@ -71,7 +84,7 @@ export default function ProjectsPage() {
     end_date: '',
   });
 
-  const { data: response, isLoading } = useProjectsList();
+  const { data: response, isLoading } = useProjectsList(1, 100, organizationId || undefined);
   const { data: usersResponse } = useUsersList();
   const { data: managersResponse, isLoading: isManagersLoading, isError: isManagersError } = useUsersManagers(
     organizationId
@@ -79,9 +92,19 @@ export default function ProjectsPage() {
   const createProject = useCreateProject();
   const updateProject = useUpdateProject(editingId || '');
   const deleteProject = useDeleteProject(deleteId || '');
+  const { data: membersResponse, isLoading: isMembersLoading } = useProjectMembers(membersProjectId || '');
+  const addMember = useAddProjectMember(membersProjectId || '');
+  const removeMember = useRemoveProjectMember(membersProjectId || '');
+  const members = membersResponse?.data || [];
 
-  const projects = response?.data || [];
-  const usersList = usersResponse?.data || [];
+  const projectsRaw = response?.data as unknown;
+  let projects: Project[] = [];
+  if (Array.isArray(projectsRaw)) {
+    projects = projectsRaw as Project[];
+  } else if (projectsRaw && typeof projectsRaw === 'object' && Array.isArray((projectsRaw as { data?: unknown }).data)) {
+    projects = (projectsRaw as { data: Project[] }).data;
+  }
+  const usersList = Array.isArray(usersResponse?.data) ? usersResponse!.data : [];
   const managersPayload = managersResponse?.data;
   const managersList = Array.isArray(managersPayload) ? managersPayload : [];
   const managerOptions = managersList
@@ -230,7 +253,11 @@ export default function ProjectsPage() {
             header: 'Manager',
             accessor: (project) => (
               <ManagerNameCell
-                managerId={project.manager_id || ''}
+                managerId={
+                  project.manager_id ||
+                  (project as { managerId?: string }).managerId ||
+                  ''
+                }
                 users={usersList}
                 managers={managersList as User[]}
               />
@@ -251,6 +278,19 @@ export default function ProjectsPage() {
             header: 'Actions',
             accessor: (project) => (
               <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <ActionButton
+                  onClick={() => {
+                    setMembersProjectId(project.project_id);
+                    setMemberUserId('');
+                    setMemberRole('developer');
+                    setMembersError(null);
+                  }}
+                  icon={Users}
+                  color={ACTION_BUTTON_COLORS.info}
+                  tooltip="Manage members"
+                  width={ACTION_BUTTON_SIZES.iconOnly.width}
+                  height={ACTION_BUTTON_SIZES.iconOnly.height}
+                />
                 <ActionButton
                   onClick={() => handleEdit(project)}
                   icon={Edit}
@@ -291,7 +331,7 @@ export default function ProjectsPage() {
             />
             <ActionButton 
               label={editingId ? 'Update' : 'Create'}
-              onClick={() => handleSubmit(new Event('submit') as any)}
+              onClick={() => formRef.current?.requestSubmit()}
               color={ACTION_BUTTON_COLORS.success}
               width={ACTION_BUTTON_SIZES.labelOnly.width}
               height={ACTION_BUTTON_SIZES.labelOnly.height}
@@ -299,7 +339,7 @@ export default function ProjectsPage() {
           </div>
         }
       >
-        <form onSubmit={handleSubmit}>
+        <form ref={formRef} onSubmit={handleSubmit}>
           {submitError && (
             <div style={{ color: '#dc2626', marginBottom: '12px', fontSize: '14px' }}>
               {submitError}
@@ -371,6 +411,103 @@ export default function ProjectsPage() {
             />
           </FormField>
         </form>
+      </Modal>
+
+      <Modal
+        isOpen={Boolean(membersProjectId)}
+        onClose={() => setMembersProjectId(null)}
+        title="Project members"
+        actions={
+          <ActionButton
+            label="Close"
+            onClick={() => setMembersProjectId(null)}
+            color={ACTION_BUTTON_COLORS.secondary}
+            width={ACTION_BUTTON_SIZES.labelOnly.width}
+            height={ACTION_BUTTON_SIZES.labelOnly.height}
+          />
+        }
+      >
+        {membersError && (
+          <div style={{ color: '#dc2626', marginBottom: '12px', fontSize: '14px' }}>{membersError}</div>
+        )}
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', alignItems: 'flex-end' }}>
+          <FormField label="Add member">
+            <select value={memberUserId} onChange={(e) => setMemberUserId(e.target.value)}>
+              <option value="">Select user</option>
+              {usersList.map((u) => {
+                const id = u.user_id || u.userId || u.id || '';
+                return (
+                  <option key={id} value={id}>
+                    {(u.name || u.email || id).trim()}
+                  </option>
+                );
+              })}
+            </select>
+          </FormField>
+          <FormField label="Role">
+            <select value={memberRole} onChange={(e) => setMemberRole(e.target.value)}>
+              <option value="developer">developer</option>
+              <option value="tester">tester</option>
+              <option value="designer">designer</option>
+              <option value="analyst">analyst</option>
+            </select>
+          </FormField>
+          <ActionButton
+            label={addMember.isPending ? '...' : 'Add'}
+            onClick={async () => {
+              if (!memberUserId) {
+                setMembersError('Select a user to add.');
+                return;
+              }
+              setMembersError(null);
+              try {
+                await addMember.mutateAsync({ user_id: memberUserId, role: memberRole });
+                setMemberUserId('');
+              } catch (err) {
+                setMembersError(err instanceof Error ? err.message : 'Failed to add member');
+              }
+            }}
+            color={ACTION_BUTTON_COLORS.success}
+            width={ACTION_BUTTON_SIZES.labelOnly.width}
+            height={ACTION_BUTTON_SIZES.labelOnly.height}
+            disabled={addMember.isPending}
+          />
+        </div>
+        {isMembersLoading && <p>Loading members...</p>}
+        {!isMembersLoading && members.length === 0 && <p>No members yet.</p>}
+        <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+          {members.map((m) => (
+            <li
+              key={m.userId}
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '8px 0',
+                borderBottom: '1px solid var(--color-border, #e5e7eb)',
+              }}
+            >
+              <span>
+                {m.name || 'Unknown member'}
+                {m.role ? ` · ${m.role}` : ''}
+              </span>
+              <ActionButton
+                label="Remove"
+                onClick={async () => {
+                  try {
+                    await removeMember.mutateAsync(m.userId);
+                  } catch (err) {
+                    setMembersError(err instanceof Error ? err.message : 'Failed to remove member');
+                  }
+                }}
+                color={ACTION_BUTTON_COLORS.danger}
+                width={ACTION_BUTTON_SIZES.labelOnly.width}
+                height={ACTION_BUTTON_SIZES.labelOnly.height}
+                disabled={removeMember.isPending}
+              />
+            </li>
+          ))}
+        </ul>
       </Modal>
 
       <ConfirmDialog

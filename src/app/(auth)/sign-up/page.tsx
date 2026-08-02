@@ -52,8 +52,8 @@ const SignUp = () => {
       },
       {
         onSuccess: () => {
-          setSuccess("Organization created successfully! Redirecting to dashboard...");
-          setTimeout(() => router.push("/dashboard"), 1500);
+          setSuccess("Organization created successfully! Redirecting to sign in...");
+          setTimeout(() => router.push("/sign-in"), 1500);
         },
         onError: (err: any) => {
           setError(err?.message || "Signup failed. Please try again.");
@@ -67,12 +67,13 @@ const SignUp = () => {
       <div className={`${common.authCard} ${common.authCardFull}`}>
         <div className={`${common.illustrationPanel} ${common.illustrationPanelFull}`}>
           <Image
-            src="/images/SignUp.png"
+            src="/images/SignUp.webp"
             alt="Workspace sign up illustration"
             fill
             sizes="(max-width: 1023px) 0px, 59vw"
             className={common.illustrationImage}
             priority
+            quality={75}
           />
         </div>
 

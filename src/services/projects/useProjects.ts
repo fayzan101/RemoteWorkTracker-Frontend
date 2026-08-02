@@ -60,6 +60,7 @@ export function useAddProjectMember(projectId: string) {
     mutationFn: (data: AddProjectMemberPayload) => projectsService.addMember(projectId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.detail(projectId) });
+      queryClient.invalidateQueries({ queryKey: ["projects", "members", projectId] });
     },
   });
 }
@@ -70,6 +71,16 @@ export function useRemoveProjectMember(projectId: string) {
     mutationFn: (userId: string) => projectsService.removeMember(projectId, userId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.detail(projectId) });
+      queryClient.invalidateQueries({ queryKey: ["projects", "members", projectId] });
     },
+  });
+}
+
+export function useProjectMembers(projectId: string) {
+  return useQuery({
+    queryKey: ["projects", "members", projectId],
+    queryFn: () => projectsService.listMembers(projectId),
+    staleTime: 1000 * 60 * 2,
+    enabled: !!projectId,
   });
 }

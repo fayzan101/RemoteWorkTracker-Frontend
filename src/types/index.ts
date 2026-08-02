@@ -14,3 +14,5 @@ export * from './tasks';
 export * from './payroll';
 export * from './analytics';
 export * from './dashboard';
+export * from './compliance';
+export * from './performance';

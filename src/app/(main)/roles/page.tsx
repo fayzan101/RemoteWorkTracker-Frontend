@@ -1,27 +1,29 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Edit, Trash2 } from 'lucide-react';
+import { toast } from 'react-toastify';
 import styles from '../main-pages.module.css';
 import DataTable from '@/components/DataTable';
 import Modal from '@/components/Modal';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import FormField from '@/components/FormField';
-import Button from '@/components/Button';
 import ActionButton from '@/components/ActionButton';
-import { useAuth } from '@/hooks';
 import { ACTION_BUTTON_SIZES, ACTION_BUTTON_COLORS } from '@/constants/actionButtons';
 import { useRolesList, useCreateRole, useUpdateRole, useDeleteRole } from '@/services/roles/useRoles';
 import type { Role, CreateRolePayload } from '@/types';
 
 export default function RolesPage() {
+  const formRef = useRef<HTMLFormElement>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [formData, setFormData] = useState<CreateRolePayload>({ name: '', description: '' });
 
-  const { data: response, isLoading } = useRolesList();
+  const { data: response, isLoading, isError } = useRolesList();
   const createRole = useCreateRole();
   const updateRole = useUpdateRole(editingId || '');
   const deleteRole = useDeleteRole(deleteId || '');
@@ -30,6 +32,7 @@ export default function RolesPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitError(null);
     try {
       if (editingId) {
         await updateRole.mutateAsync(formData);
@@ -40,22 +43,25 @@ export default function RolesPage() {
       setEditingId(null);
       setIsModalOpen(false);
     } catch (error) {
-      console.error('Error:', error);
+      setSubmitError(error instanceof Error ? error.message : 'Failed to save role.');
     }
   };
 
   const handleEdit = (role: Role) => {
     setEditingId(role.role_id);
     setFormData({ name: role.name, description: role.description });
+    setSubmitError(null);
     setIsModalOpen(true);
   };
 
   const handleDelete = (id: string) => {
     setDeleteId(id);
+    setDeleteError(null);
     setIsDeleteDialogOpen(true);
   };
 
   const confirmDelete = async () => {
+    setDeleteError(null);
     try {
       if (deleteId) {
         await deleteRole.mutateAsync();
@@ -63,18 +69,22 @@ export default function RolesPage() {
       setIsDeleteDialogOpen(false);
       setDeleteId(null);
     } catch (error) {
-      console.error('Error:', error);
+      const message = error instanceof Error ? error.message : 'Failed to delete role.';
+      setDeleteError(message);
+      toast.error(message);
     }
   };
 
   const cancelDelete = () => {
     setIsDeleteDialogOpen(false);
     setDeleteId(null);
+    setDeleteError(null);
   };
 
   const closeModal = () => {
     setIsModalOpen(false);
     setEditingId(null);
+    setSubmitError(null);
     setFormData({ name: '', description: '' });
   };
 
@@ -85,14 +95,23 @@ export default function RolesPage() {
           <h1 className={styles.pageTitle}>Roles</h1>
           <p className={styles.pageSubtitle}>Manage organization roles</p>
         </div>
-        <ActionButton 
-          label="Add Role" 
-          onClick={() => setIsModalOpen(true)}
+        <ActionButton
+          label="Add Role"
+          onClick={() => {
+            setSubmitError(null);
+            setIsModalOpen(true);
+          }}
           color={ACTION_BUTTON_COLORS.success}
           width={ACTION_BUTTON_SIZES.labelOnly.width}
           height={ACTION_BUTTON_SIZES.labelOnly.height}
         />
       </div>
+
+      {isError && (
+        <div style={{ color: '#dc2626', marginBottom: '16px', fontSize: '14px' }}>
+          Failed to load roles. Please try again.
+        </div>
+      )}
 
       <DataTable<Role>
         data={roles}
@@ -134,16 +153,16 @@ export default function RolesPage() {
         title={editingId ? 'Edit Role' : 'Create New Role'}
         actions={
           <div style={{ display: 'flex', gap: '8px' }}>
-            <ActionButton 
-              label="Cancel" 
+            <ActionButton
+              label="Cancel"
               onClick={closeModal}
               color={ACTION_BUTTON_COLORS.secondary}
               width={ACTION_BUTTON_SIZES.labelOnly.width}
               height={ACTION_BUTTON_SIZES.labelOnly.height}
             />
-            <ActionButton 
+            <ActionButton
               label={editingId ? 'Update' : 'Create'}
-              onClick={() => handleSubmit(new Event('submit') as any)}
+              onClick={() => formRef.current?.requestSubmit()}
               color={ACTION_BUTTON_COLORS.success}
               width={ACTION_BUTTON_SIZES.labelOnly.width}
               height={ACTION_BUTTON_SIZES.labelOnly.height}
@@ -151,7 +170,10 @@ export default function RolesPage() {
           </div>
         }
       >
-        <form onSubmit={handleSubmit}>
+        <form ref={formRef} onSubmit={handleSubmit}>
+          {submitError && (
+            <div style={{ color: '#dc2626', marginBottom: '12px', fontSize: '14px' }}>{submitError}</div>
+          )}
           <FormField label="Role Name" required>
             <input
               type="text"
@@ -173,7 +195,7 @@ export default function RolesPage() {
       <ConfirmDialog
         isOpen={isDeleteDialogOpen}
         title="Delete Role"
-        message="Are you sure you want to delete this role? This action cannot be undone."
+        message={deleteError || 'Are you sure you want to delete this role? This action cannot be undone.'}
         confirmText="Delete"
         cancelText="Cancel"
         isDangerous={true}

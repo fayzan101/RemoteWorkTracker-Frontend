@@ -9,6 +9,9 @@ const ENDPOINTS = {
   DELETE: "/api/v1/tasks/:id",
   ADD_COMMENT: "/api/v1/tasks/:taskId/comments",
   GET_COMMENTS: "/api/v1/tasks/:taskId/comments",
+  LIST_ATTACHMENTS: "/api/v1/tasks/:taskId/attachments",
+  ADD_ATTACHMENT: "/api/v1/tasks/:taskId/attachments",
+  DELETE_ATTACHMENT: "/api/v1/tasks/:taskId/attachments/:attachmentId",
 };
 
 export const tasksService = {
@@ -72,5 +75,23 @@ export const tasksService = {
     apiClient<{ data: { taskId: string; comments: any[] } }>(
       ENDPOINTS.GET_COMMENTS.replace(":taskId", taskId),
       { method: "GET" }
+    ),
+
+  listAttachments: (taskId: string) =>
+    apiClient<{ data: Array<{ attachment_id: string; file_path: string; created_at?: string }> }>(
+      ENDPOINTS.LIST_ATTACHMENTS.replace(":taskId", taskId),
+      { method: "GET" }
+    ),
+
+  addAttachment: (taskId: string, filePath: string) =>
+    apiClient<{ data: { attachment_id: string; file_path: string } }>(
+      ENDPOINTS.ADD_ATTACHMENT.replace(":taskId", taskId),
+      { method: "POST", body: { file_path: filePath } }
+    ),
+
+  deleteAttachment: (taskId: string, attachmentId: string) =>
+    apiClient<{ data: { message: string } }>(
+      ENDPOINTS.DELETE_ATTACHMENT.replace(":taskId", taskId).replace(":attachmentId", attachmentId),
+      { method: "DELETE" }
     ),
 };

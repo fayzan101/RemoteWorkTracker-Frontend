@@ -338,7 +338,6 @@ export default function PayrollPage() {
                       <td className={styles.tableCell}>
                         <div className={styles.employeeCell}>
                           <span className={styles.employeeName}>{record.employeeName || 'Unknown employee'}</span>
-                          <span className={styles.employeeId}>{record.userId}</span>
                         </div>
                       </td>
                       <td className={styles.tableCell}>{formatMonthLabel(record.month)}</td>

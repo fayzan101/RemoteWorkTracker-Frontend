@@ -2,13 +2,27 @@
 
 import { useTelemetryActivityDetail } from '@/services/telemetry/useTelemetryActivityDetail';
 import type { TelemetrySegmentRow } from '@/types/telemetry';
-import styles from '@/app/(main)/main-pages.module.css';
+import Modal from '@/components/Modal';
+import ActionButton from '@/components/ActionButton';
+import { ACTION_BUTTON_COLORS, ACTION_BUTTON_SIZES } from '@/constants/actionButtons';
+import styles from './DeskActivityModal.module.css';
 
 function formatDt(value: string | null) {
   if (!value) return '—';
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return value;
   return d.toLocaleString();
+}
+
+function formatDuration(seconds: number | null | undefined) {
+  if (typeof seconds !== 'number' || !Number.isFinite(seconds) || seconds < 0) return '—';
+  if (seconds < 60) return `${seconds}s`;
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  if (m < 60) return s ? `${m}m ${s}s` : `${m}m`;
+  const h = Math.floor(m / 60);
+  const rm = m % 60;
+  return rm ? `${h}h ${rm}m` : `${h}h`;
 }
 
 export function DeskActivityModal(props: {
@@ -28,97 +42,62 @@ export function DeskActivityModal(props: {
     enabled: open,
   });
 
-  if (!open) return null;
-
-  const segments: TelemetrySegmentRow[] = payload?.data || [];
+  const segments: TelemetrySegmentRow[] = Array.isArray(payload?.data) ? payload!.data : [];
 
   return (
-    <div
-      role="presentation"
-      style={{
-        position: 'fixed',
-        inset: 0,
-        background: 'rgba(0,0,0,0.45)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 1000,
-        padding: '16px',
-      }}
-      onClick={onClose}
+    <Modal
+      isOpen={open}
+      onClose={onClose}
+      title="Desk activity"
+      size="large"
+      actions={
+        <ActionButton
+          label="Close"
+          onClick={onClose}
+          color={ACTION_BUTTON_COLORS.secondary}
+          width={ACTION_BUTTON_SIZES.labelOnly.width}
+          height={ACTION_BUTTON_SIZES.labelOnly.height}
+        />
+      }
     >
-      <div
-        role="dialog"
-        className={styles.pageContainer}
-        style={{
-          maxWidth: 960,
-          width: '100%',
-          maxHeight: '90vh',
-          overflow: 'auto',
-          margin: 0,
-          background: 'var(--color-surface)',
-          borderRadius: '12px',
-          boxShadow: '0 24px 60px rgba(0,0,0,0.2)',
-          padding: '20px',
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px' }}>
-          <div>
-            <h2 style={{ margin: '0 0 6px', fontSize: '20px', fontWeight: 700 }}>Desk activity segments</h2>
-            <p style={{ margin: 0, color: 'var(--color-text-secondary)', fontSize: '14px' }}>
-              {employeeLabel} · Day {day}
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            style={{ borderRadius: '8px', border: '1px solid var(--color-border)', padding: '8px 12px', cursor: 'pointer' }}
-          >
-            Close
-          </button>
-        </div>
+      <p className={styles.subtitle}>
+        <span className={styles.employee}>{employeeLabel || 'Employee'}</span>
+        {day ? <span className={styles.meta}> · {day} (UTC)</span> : null}
+      </p>
 
-        {isLoading && <div style={{ marginTop: '20px' }}>Loading segments…</div>}
-        {isError && (
-          <div style={{ marginTop: '20px', color: '#dc2626' }}>
-            {(error as Error)?.message || 'Could not load activity segments'}
-          </div>
-        )}
-        {!isLoading && !isError && segments.length === 0 && (
-          <div style={{ marginTop: '20px', color: 'var(--color-text-secondary)' }}>No segments for this day.</div>
-        )}
-        {!isLoading && !isError && segments.length > 0 && (
-          <div style={{ marginTop: '16px', overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
-              <thead>
-                <tr style={{ textAlign: 'left', borderBottom: '1px solid var(--color-border)' }}>
-                  <th style={{ padding: '10px 8px' }}>Time</th>
-                  <th style={{ padding: '10px 8px' }}>App</th>
-                  <th style={{ padding: '10px 8px' }}>Window / action</th>
-                  <th style={{ padding: '10px 8px' }}>Dur</th>
+      {isLoading && <div className={styles.state}>Loading segments…</div>}
+      {isError && (
+        <div className={styles.error}>
+          {(error as Error)?.message || 'Could not load activity segments'}
+        </div>
+      )}
+      {!isLoading && !isError && segments.length === 0 && (
+        <div className={styles.state}>No desk segments recorded for this day.</div>
+      )}
+      {!isLoading && !isError && segments.length > 0 && (
+        <div className={styles.tableWrap}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>App</th>
+                <th>Window / action</th>
+                <th>Duration</th>
+              </tr>
+            </thead>
+            <tbody>
+              {segments.map((row: TelemetrySegmentRow, idx: number) => (
+                <tr key={`${row.createdAt}-${idx}`}>
+                  <td className={styles.time}>{formatDt(row.createdAt)}</td>
+                  <td>{row.appLabel || '—'}</td>
+                  <td className={styles.window}>{row.windowTitle || row.action || '—'}</td>
+                  <td className={styles.dur}>{formatDuration(row.durationSeconds)}</td>
                 </tr>
-              </thead>
-              <tbody>
-                {segments.map((row: TelemetrySegmentRow, idx: number) => (
-                  <tr key={`${row.createdAt}-${idx}`} style={{ borderBottom: '1px solid rgba(229,231,235,0.6)' }}>
-                    <td style={{ padding: '8px', verticalAlign: 'top' }}>{formatDt(row.createdAt)}</td>
-                    <td style={{ padding: '8px', verticalAlign: 'top', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                      {row.appLabel || '—'}
-                    </td>
-                    <td style={{ padding: '8px', verticalAlign: 'top', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                      {row.windowTitle || row.action}
-                    </td>
-                    <td style={{ padding: '8px', verticalAlign: 'top', whiteSpace: 'nowrap' }}>
-                      {typeof row.durationSeconds === 'number' ? `${row.durationSeconds}s` : '—'}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-    </div>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </Modal>
   );
 }

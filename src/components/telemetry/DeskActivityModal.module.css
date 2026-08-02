@@ -1,0 +1,100 @@
+.subtitle {
+  margin: 0 0 16px;
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.employee {
+  color: var(--color-text-primary);
+  font-weight: 700;
+}
+
+.meta {
+  color: var(--color-text-tertiary);
+}
+
+.state {
+  margin-top: 8px;
+  padding: 24px 16px;
+  text-align: center;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-lg, 12px);
+  background: color-mix(in srgb, var(--color-surface-secondary, #f8fafc) 70%, transparent);
+}
+
+.error {
+  margin-top: 8px;
+  padding: 14px 16px;
+  color: #b91c1c;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: var(--radius-lg, 12px);
+  background: color-mix(in srgb, #ef4444 10%, var(--color-surface));
+  border: 1px solid color-mix(in srgb, #ef4444 30%, transparent);
+}
+
+.tableWrap {
+  overflow-x: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg, 12px);
+  max-height: min(55vh, 480px);
+  overflow-y: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  text-align: left;
+  padding: 12px 14px;
+  background: color-mix(in srgb, var(--color-surface-secondary, #f1f5f9) 90%, var(--color-surface));
+  color: var(--color-text-secondary);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.table td {
+  padding: 11px 14px;
+  vertical-align: top;
+  border-bottom: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent);
+  color: var(--color-text-primary);
+}
+
+.table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.table tbody tr:hover td {
+  background: color-mix(in srgb, var(--color-primary) 4%, transparent);
+}
+
+.time {
+  white-space: nowrap;
+  color: var(--color-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.window {
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-width: 360px;
+}
+
+.dur {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
