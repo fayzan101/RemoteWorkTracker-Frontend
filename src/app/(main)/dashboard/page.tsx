@@ -93,6 +93,7 @@ function CardSection({
   children,
   icon,
   iconTone,
+  className,
 }: {
   title: string;
   subtitle: string;
@@ -101,9 +102,10 @@ function CardSection({
   children: ReactNode;
   icon: ReactNode;
   iconTone: string;
+  className?: string;
 }) {
   return (
-    <section className={styles.card}>
+    <section className={`${styles.card} ${className ?? ''}`.trim()}>
       <div className={styles.cardHeader}>
         <div className={styles.cardHeading}>
           <div className={styles.iconBadge} style={{ background: iconTone }}>
@@ -698,8 +700,8 @@ export default function DashboardPage() {
         </div>
 
         <div className={styles.grid}>
-          <div className={styles.leftColumn}>
             <CardSection
+              className={styles.fullWidthCard}
               title="Employees Overview"
               subtitle="Merged users, month-to-date agent rollups (UTC), and task completion (analytics)"
               action="Manage"
@@ -759,6 +761,7 @@ export default function DashboardPage() {
             </CardSection>
 
             <CardSection
+              className={styles.fullWidthCard}
               title="Team Activity Timeline"
               subtitle="Today (UTC) — full 24h bar; falls back to top agents MTD if no desk data today"
               icon="≋"
@@ -813,6 +816,7 @@ export default function DashboardPage() {
               </div>
             </CardSection>
 
+          <div className={styles.leftColumn}>
             <div className={styles.stackTwo}>
               <CardSection
                 title="Active Projects"
@@ -1018,12 +1022,12 @@ export default function DashboardPage() {
                 </div>
               </CardSection>
 
-              <div className={styles.stackTwo} style={{ gridTemplateColumns: '1fr 1fr' }}>
+              <div className={styles.stackTwo}>
                 <CardSection
                   title="Top Applications"
                   subtitle="Organization totals for today (UTC)"
                   icon="◫"
-                  iconTone="linear-gradient(135deg, #7c3aed, #a855f7)"
+                  iconTone="linear-gradient(135deg, #0f766e, #14b8a6)"
                 >
                   <div className={styles.cardScrollRegion}>
                     {appsByDayError ? (
@@ -1087,94 +1091,6 @@ export default function DashboardPage() {
                 </CardSection>
               </div>
             </div>
-
-            <CardSection title="Employee Wellness" subtitle="Mood logs (org)" icon="♥" iconTone="linear-gradient(135deg, #f43f5e, #fb7185)">
-              <div className={styles.cardScrollRegion}>
-                <div className={styles.wellnessGrid}>
-                  <div className={styles.projectItem} style={{ background: 'linear-gradient(135deg, rgba(244, 63, 94, 0.1), rgba(236, 72, 153, 0.08))' }}>
-                    <div className={styles.projectHeader}>
-                      <p className={styles.projectTitle}>Wellness index</p>
-                      <span className={styles.okChip}>{mood.score}</span>
-                    </div>
-                    <div className={styles.metricValueRow} style={{ marginTop: 12 }}>
-                      <span className={styles.metricValue}>{mood.score}</span>
-                      <span className={styles.subtleText}>From mood distribution</span>
-                    </div>
-                    <div className={styles.sectionList} style={{ marginTop: 12 }}>
-                      {[`Positive ${mood.happy}`, `Neutral ${mood.neutral}`, `Strained ${mood.stressed}`].map((item) => (
-                        <div key={item} className={styles.smallRow}>
-                          {item}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className={styles.sectionList}>
-                    <div className={styles.metricItem}>
-                      <div className={styles.metricHeader}>
-                        <span className={styles.subtleText}>Logs (period)</span>
-                        <span className={styles.okChip}>{wellnessLogs.length}</span>
-                      </div>
-                    </div>
-                    <div className={styles.metricItem}>
-                      <div className={styles.metricHeader}>
-                        <span className={styles.subtleText}>Team coverage</span>
-                        <span className={styles.warnChip}>{Math.round((summary?.telemetry.coverageRatio ?? 0) * 100)}%</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className={styles.sectionList}>
-                    <div className={styles.alertList}>
-                      {goals
-                        .filter((g) => (g.progress || 0) < 40)
-                        .slice(0, 2)
-                        .map((g) => (
-                          <div key={g.goalId} className={styles.alertItem}>
-                            <span className={styles.warnChip}>▲</span>
-                            <div>
-                              <p className={styles.alertTitle}>{g.title}</p>
-                              <p className={styles.subtleText}>Goal progress {g.progress ?? 0}%</p>
-                            </div>
-                          </div>
-                        ))}
-                    </div>
-                  </div>
-
-                  <div className={styles.sectionList}>
-                    <div className={styles.projectItem} style={{ background: 'linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(168, 85, 247, 0.08))' }}>
-                      <p className={styles.projectTitle}>Analytics</p>
-                      <p className={styles.subtleText}>{analyticsOverview?.aiInsights?.explanation ?? 'AI sections use optional analytics microservice.'}</p>
-                    </div>
-                  </div>
-                </div>
-                {!wellnessLogs.length ? (
-                  <p className={styles.subtleText} style={{ marginTop: 10 }}>
-                    No wellness logs in this period. Mood entries will appear here when available.
-                  </p>
-                ) : null}
-              </div>
-            </CardSection>
-
-            <CardSection title="AI Insights" subtitle="From analytics/overview when AI data exists; otherwise factual prompts" icon="✦" iconTone="linear-gradient(135deg, #0ea5c9, #22d3ee)">
-              <div className={styles.cardScrollRegion}>
-                {insights.length ? (
-                  <div className={styles.insightGrid}>
-                    {insights.map((insight) => (
-                      <article key={insight.title} className={styles.insightCard} style={{ background: insight.bg }}>
-                        <div className={styles.insightIcon} style={{ background: insight.bg, color: insight.tone }}>
-                          ●
-                        </div>
-                        <p className={styles.insightTitle}>{insight.title}</p>
-                        <p className={styles.insightText}>{insight.description}</p>
-                      </article>
-                    ))}
-                  </div>
-                ) : (
-                  <p className={styles.subtleText}>No insights available for this period. Check back when analytics AI or summary data is present.</p>
-                )}
-              </div>
-            </CardSection>
           </div>
 
           <div className={styles.rightColumn}>
@@ -1369,6 +1285,95 @@ export default function DashboardPage() {
                   <p className={styles.subtleText}>No ranking data yet.</p>
                 ) : null}
               </div>
+            </CardSection>
+
+            <CardSection title="Employee Wellness" subtitle="Mood logs (org)" icon="♥" iconTone="linear-gradient(135deg, #f43f5e, #fb7185)">
+              <div className={styles.cardScrollRegion}>
+                <div className={styles.wellnessGrid}>
+                  <div className={styles.projectItem} style={{ background: 'linear-gradient(135deg, rgba(244, 63, 94, 0.1), rgba(236, 72, 153, 0.08))' }}>
+                    <div className={styles.projectHeader}>
+                      <p className={styles.projectTitle}>Wellness index</p>
+                      <span className={styles.okChip}>{mood.score}</span>
+                    </div>
+                    <div className={styles.metricValueRow} style={{ marginTop: 12 }}>
+                      <span className={styles.metricValue}>{mood.score}</span>
+                      <span className={styles.subtleText}>From mood distribution</span>
+                    </div>
+                    <div className={styles.sectionList} style={{ marginTop: 12 }}>
+                      {[`Positive ${mood.happy}`, `Neutral ${mood.neutral}`, `Strained ${mood.stressed}`].map((item) => (
+                        <div key={item} className={styles.smallRow}>
+                          {item}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className={styles.sectionList}>
+                    <div className={styles.metricItem}>
+                      <div className={styles.metricHeader}>
+                        <span className={styles.subtleText}>Logs (period)</span>
+                        <span className={styles.okChip}>{wellnessLogs.length}</span>
+                      </div>
+                    </div>
+                    <div className={styles.metricItem}>
+                      <div className={styles.metricHeader}>
+                        <span className={styles.subtleText}>Team coverage</span>
+                        <span className={styles.warnChip}>{Math.round((summary?.telemetry.coverageRatio ?? 0) * 100)}%</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className={styles.sectionList}>
+                    <div className={styles.alertList}>
+                      {goals
+                        .filter((g) => (g.progress || 0) < 40)
+                        .slice(0, 2)
+                        .map((g) => (
+                          <div key={g.goalId} className={styles.alertItem}>
+                            <span className={styles.warnChip}>▲</span>
+                            <div>
+                              <p className={styles.alertTitle}>{g.title}</p>
+                              <p className={styles.subtleText}>Goal progress {g.progress ?? 0}%</p>
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+
+                  <div className={styles.sectionList}>
+                    <div className={styles.projectItem} style={{ background: 'color-mix(in srgb, var(--color-primary) 10%, var(--dash-card-solid))' }}>
+                      <p className={styles.projectTitle}>Analytics</p>
+                      <p className={styles.subtleText}>{analyticsOverview?.aiInsights?.explanation ?? 'AI sections use optional analytics microservice.'}</p>
+                    </div>
+                  </div>
+                </div>
+                {!wellnessLogs.length ? (
+                  <p className={styles.subtleText} style={{ marginTop: 10 }}>
+                    No wellness logs in this period. Mood entries will appear here when available.
+                  </p>
+                ) : null}
+              </div>
+            </CardSection>
+
+            <CardSection title="AI Insights" subtitle="From analytics/overview when AI data exists; otherwise factual prompts" icon="✦" iconTone="linear-gradient(135deg, #0f766e, #22d3ee)">
+              <div className={styles.cardScrollRegion}>
+                {insights.length ? (
+                  <div className={styles.insightGrid}>
+                    {insights.map((insight) => (
+                      <article key={insight.title} className={styles.insightCard} style={{ background: insight.bg }}>
+                        <div className={styles.insightIcon} style={{ background: insight.bg, color: insight.tone }}>
+                          ●
+                        </div>
+                        <p className={styles.insightTitle}>{insight.title}</p>
+                        <p className={styles.insightText}>{insight.description}</p>
+                      </article>
+                    ))}
+                  </div>
+                ) : (
+                  <p className={styles.subtleText}>No insights available for this period. Check back when analytics AI or summary data is present.</p>
+                )}
+              </div>
+
             </CardSection>
           </div>
         </div>
