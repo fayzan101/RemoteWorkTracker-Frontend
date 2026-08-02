@@ -1,25 +1,25 @@
 .heroPanel {
   position: relative;
   overflow: hidden;
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  border-radius: 20px;
+  border: 1px solid color-mix(in srgb, var(--color-primary) 22%, transparent);
+  border-radius: var(--radius-xl);
   background:
-    radial-gradient(circle at top left, rgba(59, 130, 246, 0.22), transparent 32%),
-    radial-gradient(circle at bottom right, rgba(16, 185, 129, 0.16), transparent 30%),
-    linear-gradient(135deg, rgba(15, 23, 42, 0.97), rgba(30, 41, 59, 0.92));
+    radial-gradient(circle at top left, color-mix(in srgb, #14b8a6 28%, transparent), transparent 34%),
+    radial-gradient(circle at bottom right, color-mix(in srgb, #0e7490 22%, transparent), transparent 32%),
+    linear-gradient(135deg, #0b1220 0%, #115e59 55%, #0f172a 100%);
   color: #f8fafc;
-  padding: 28px;
-  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.18);
+  padding: 24px;
+  box-shadow: var(--shadow-md);
 }
 
 .heroPanel::after {
   content: '';
   position: absolute;
   inset: auto -15% -45% auto;
-  width: 280px;
-  height: 280px;
+  width: 260px;
+  height: 260px;
   border-radius: 999px;
-  background: radial-gradient(circle, rgba(59, 130, 246, 0.2), transparent 65%);
+  background: radial-gradient(circle, color-mix(in srgb, #2dd4bf 24%, transparent), transparent 65%);
   filter: blur(12px);
   pointer-events: none;
 }
@@ -28,8 +28,8 @@
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
-  gap: 24px;
+  grid-template-columns: minmax(0, 1.25fr) minmax(280px, 0.85fr);
+  gap: 20px;
   align-items: center;
 }
 
@@ -37,60 +37,65 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 12px;
+  padding: 6px 11px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: rgba(248, 250, 252, 0.9);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
+  font-family: var(--font-secondary), system-ui, sans-serif;
 }
 
 .heroTitle {
-  margin: 16px 0 10px;
-  font-size: clamp(28px, 4vw, 44px);
-  line-height: 1.04;
-  letter-spacing: -0.04em;
+  margin: 14px 0 10px;
+  font-size: clamp(1.55rem, 3vw, 2.2rem);
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  font-family: var(--font-secondary), system-ui, sans-serif;
+  font-weight: 800;
 }
 
 .heroCopy {
   margin: 0;
-  max-width: 62ch;
+  max-width: 60ch;
   color: rgba(226, 232, 240, 0.84);
-  font-size: 15px;
+  font-size: 14px;
   line-height: 1.6;
+  font-weight: 500;
 }
 
 .heroPills {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 20px;
+  gap: 8px;
+  margin-top: 18px;
 }
 
 .heroPill {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 9px 12px;
+  padding: 8px 11px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.12);
   color: #f8fafc;
-  font-size: 13px;
+  font-size: 12.5px;
+  font-weight: 600;
 }
 
 .heroCards {
   display: grid;
-  gap: 12px;
+  gap: 10px;
 }
 
 .heroCard {
-  border-radius: 16px;
-  padding: 16px 18px;
-  background: rgba(15, 23, 42, 0.44);
+  border-radius: 14px;
+  padding: 14px 16px;
+  background: rgba(15, 23, 42, 0.4);
   border: 1px solid rgba(148, 163, 184, 0.18);
   backdrop-filter: blur(10px);
 }
@@ -98,22 +103,24 @@
 .heroCardLabel {
   margin: 0;
   color: rgba(226, 232, 240, 0.72);
-  font-size: 12px;
+  font-size: 11px;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.07em;
+  font-weight: 700;
 }
 
 .heroCardValue {
   margin: 8px 0 0;
-  font-size: 28px;
-  font-weight: 700;
+  font-size: 24px;
+  font-weight: 800;
   letter-spacing: -0.03em;
+  font-family: var(--font-secondary), system-ui, sans-serif;
 }
 
 .heroCardMeta {
   margin: 6px 0 0;
   color: rgba(226, 232, 240, 0.78);
-  font-size: 13px;
+  font-size: 12.5px;
   line-height: 1.45;
 }
 
@@ -125,83 +132,92 @@
 }
 
 .windowButton {
-  border: 1px solid var(--color-border-light);
-  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
   color: var(--color-text-secondary);
   border-radius: 999px;
-  padding: 9px 14px;
+  padding: 8px 14px;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 650;
   cursor: pointer;
-  transition: all 160ms ease;
+  transition: all 150ms ease;
+}
+
+.windowButton:hover {
+  border-color: color-mix(in srgb, var(--color-primary) 30%, var(--color-border));
+  color: var(--color-text-primary);
 }
 
 .windowButtonActive {
-  background: var(--color-text-primary);
-  color: var(--color-background);
-  border-color: var(--color-text-primary);
+  background: var(--color-primary);
+  color: #fff;
+  border-color: var(--color-primary);
 }
 
 .noteBanner {
-  margin: 20px 0 0;
-  padding: 14px 16px;
-  border-radius: 14px;
-  background: rgba(59, 130, 246, 0.08);
-  border: 1px solid rgba(59, 130, 246, 0.18);
+  margin: 18px 0 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--color-primary) 8%, var(--color-surface));
+  border: 1px solid color-mix(in srgb, var(--color-primary) 18%, transparent);
   color: var(--color-text-secondary);
-  font-size: 14px;
+  font-size: 13.5px;
+  line-height: 1.5;
 }
 
 .metricsGrid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 14px;
-  margin-top: 20px;
+  gap: 12px;
+  margin-top: 18px;
 }
 
 .metricCard {
-  border-radius: 16px;
-  padding: 18px;
-  background: var(--color-background);
-  border: 1px solid var(--color-border-light);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+  border-radius: 14px;
+  padding: 16px;
+  background: var(--color-surface);
+  border: 1px solid color-mix(in srgb, var(--color-border) 85%, transparent);
+  box-shadow: var(--shadow-xs);
 }
 
 .metricLabel {
   margin: 0;
   color: var(--color-text-tertiary);
-  font-size: 12px;
+  font-size: 11px;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
+  font-weight: 750;
 }
 
 .metricValue {
   margin: 10px 0 0;
-  font-size: 28px;
+  font-size: 24px;
   line-height: 1;
-  font-weight: 700;
+  font-weight: 800;
   color: var(--color-text-primary);
+  font-family: var(--font-secondary), system-ui, sans-serif;
+  letter-spacing: -0.02em;
 }
 
 .metricMeta {
   margin: 8px 0 0;
   color: var(--color-text-secondary);
-  font-size: 13px;
+  font-size: 12.5px;
   line-height: 1.45;
 }
 
 .contentGrid {
   display: grid;
-  grid-template-columns: minmax(0, 1.4fr) minmax(320px, 0.9fr);
-  gap: 18px;
-  margin-top: 20px;
+  grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.95fr);
+  gap: 14px;
+  margin-top: 18px;
 }
 
 .panel {
-  border-radius: 18px;
-  background: var(--color-background);
-  border: 1px solid var(--color-border-light);
-  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface);
+  border: 1px solid color-mix(in srgb, var(--color-border) 85%, transparent);
+  box-shadow: var(--shadow-sm);
   overflow: hidden;
 }
 
@@ -210,14 +226,16 @@
   justify-content: space-between;
   align-items: center;
   gap: 12px;
-  padding: 18px 18px 0;
+  padding: 16px 16px 0;
 }
 
 .panelTitle {
   margin: 0;
-  font-size: 18px;
-  font-weight: 700;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
   color: var(--color-text-primary);
+  font-family: var(--font-secondary), system-ui, sans-serif;
 }
 
 .panelSubtitle {
@@ -228,19 +246,19 @@
 }
 
 .panelBody {
-  padding: 18px;
+  padding: 16px;
 }
 
 .employeeList {
   display: grid;
-  gap: 12px;
+  gap: 10px;
 }
 
 .employeeCard {
-  border: 1px solid var(--color-border-light);
-  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--color-border) 85%, transparent);
+  border-radius: 14px;
   padding: 14px;
-  background: linear-gradient(180deg, rgba(248, 250, 252, 0.96), rgba(241, 245, 249, 0.82));
+  background: color-mix(in srgb, var(--color-surface-secondary) 40%, var(--color-surface));
 }
 
 .employeeTop {
@@ -261,20 +279,20 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 42px;
-  height: 42px;
-  border-radius: 14px;
-  background: linear-gradient(135deg, rgba(37, 99, 235, 0.16), rgba(16, 185, 129, 0.16));
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--color-primary) 18%, transparent), color-mix(in srgb, #0e7490 16%, transparent));
   color: var(--color-text-primary);
-  font-weight: 700;
+  font-weight: 750;
   flex-shrink: 0;
 }
 
 .employeeName {
   margin: 0;
   color: var(--color-text-primary);
-  font-size: 15px;
-  font-weight: 700;
+  font-size: 14px;
+  font-weight: 750;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -297,36 +315,36 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 10px;
+  padding: 5px 9px;
   border-radius: 999px;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 11.5px;
+  font-weight: 650;
 }
 
 .badgePositive {
-  background: rgba(34, 197, 94, 0.14);
+  background: color-mix(in srgb, #22c55e 14%, transparent);
   color: #166534;
 }
 
 .badgeWarning {
-  background: rgba(245, 158, 11, 0.16);
+  background: color-mix(in srgb, #f59e0b 16%, transparent);
   color: #92400e;
 }
 
 .badgeDanger {
-  background: rgba(239, 68, 68, 0.14);
+  background: color-mix(in srgb, #ef4444 14%, transparent);
   color: #b91c1c;
 }
 
 .badgeNeutral {
-  background: rgba(100, 116, 139, 0.14);
+  background: color-mix(in srgb, #64748b 14%, transparent);
   color: #334155;
 }
 
 .scoreLine {
   display: grid;
   gap: 8px;
-  margin-top: 14px;
+  margin-top: 12px;
 }
 
 .scoreRow {
@@ -339,22 +357,22 @@
 }
 
 .scoreValue {
-  font-weight: 700;
+  font-weight: 750;
   color: var(--color-text-primary);
 }
 
 .progressTrack {
   width: 100%;
-  height: 10px;
+  height: 8px;
   border-radius: 999px;
-  background: rgba(148, 163, 184, 0.18);
+  background: color-mix(in srgb, var(--color-border) 80%, transparent);
   overflow: hidden;
 }
 
 .progressFill {
   height: 100%;
-  border-radius: inherit;
-  background: linear-gradient(90deg, #2563eb, #14b8a6);
+  border-radius: 999px;
+  background: linear-gradient(90deg, #0f766e, #14b8a6);
 }
 
 .secondaryScores {

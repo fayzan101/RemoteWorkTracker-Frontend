@@ -73,11 +73,11 @@
 
 .pageTitle {
   margin: 0 0 6px 0;
-  font-family: var(--font-secondary), var(--font-primary), system-ui, sans-serif;
-  font-size: clamp(1.5rem, 2.5vw, 1.875rem);
+  font-family: var(--font-display), var(--font-secondary), system-ui, sans-serif;
+  font-size: clamp(1.4rem, 2.2vw, 1.75rem);
   font-weight: 800;
-  letter-spacing: -0.035em;
-  line-height: 1.15;
+  letter-spacing: var(--tracking-tight);
+  line-height: 1.18;
   color: var(--color-text-primary);
 }
 

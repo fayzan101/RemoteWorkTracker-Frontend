@@ -3,11 +3,13 @@
 import { useMemo, useRef, useState } from 'react';
 import { Edit, Trash2, Users } from 'lucide-react';
 import styles from '../main-pages.module.css';
+import projectStyles from './projects-page.module.css';
 import DataTable from '@/components/DataTable';
 import Modal from '@/components/Modal';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import FormField from '@/components/FormField';
 import ActionButton from '@/components/ActionButton';
+import LoadingIndicator from '@/components/LoadingIndicator';
 import { useAuth } from '@/hooks';
 import { ACTION_BUTTON_SIZES, ACTION_BUTTON_COLORS } from '@/constants/actionButtons';
 import {
@@ -321,15 +323,15 @@ export default function ProjectsPage() {
         onClose={closeModal}
         title={editingId ? 'Edit Project' : 'Create New Project'}
         actions={
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <ActionButton 
-              label="Cancel" 
+          <div className={projectStyles.actions}>
+            <ActionButton
+              label="Cancel"
               onClick={closeModal}
               color={ACTION_BUTTON_COLORS.secondary}
               width={ACTION_BUTTON_SIZES.labelOnly.width}
               height={ACTION_BUTTON_SIZES.labelOnly.height}
             />
-            <ActionButton 
+            <ActionButton
               label={editingId ? 'Update' : 'Create'}
               onClick={() => formRef.current?.requestSubmit()}
               color={ACTION_BUTTON_COLORS.success}
@@ -417,6 +419,7 @@ export default function ProjectsPage() {
         isOpen={Boolean(membersProjectId)}
         onClose={() => setMembersProjectId(null)}
         title="Project members"
+        size="large"
         actions={
           <ActionButton
             label="Close"
@@ -427,10 +430,9 @@ export default function ProjectsPage() {
           />
         }
       >
-        {membersError && (
-          <div style={{ color: '#dc2626', marginBottom: '12px', fontSize: '14px' }}>{membersError}</div>
-        )}
-        <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', alignItems: 'flex-end' }}>
+        {membersError ? <div className={styles.formError}>{membersError}</div> : null}
+
+        <div className={projectStyles.addRow}>
           <FormField label="Add member">
             <select value={memberUserId} onChange={(e) => setMemberUserId(e.target.value)}>
               <option value="">Select user</option>
@@ -453,7 +455,7 @@ export default function ProjectsPage() {
             </select>
           </FormField>
           <ActionButton
-            label={addMember.isPending ? '...' : 'Add'}
+            label={addMember.isPending ? 'Adding…' : 'Add member'}
             onClick={async () => {
               if (!memberUserId) {
                 setMembersError('Select a user to add.');
@@ -471,43 +473,41 @@ export default function ProjectsPage() {
             width={ACTION_BUTTON_SIZES.labelOnly.width}
             height={ACTION_BUTTON_SIZES.labelOnly.height}
             disabled={addMember.isPending}
+            loading={addMember.isPending}
           />
         </div>
-        {isMembersLoading && <p>Loading members...</p>}
-        {!isMembersLoading && members.length === 0 && <p>No members yet.</p>}
-        <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-          {members.map((m) => (
-            <li
-              key={m.userId}
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                padding: '8px 0',
-                borderBottom: '1px solid var(--color-border, #e5e7eb)',
-              }}
-            >
-              <span>
-                {m.name || 'Unknown member'}
-                {m.role ? ` · ${m.role}` : ''}
-              </span>
-              <ActionButton
-                label="Remove"
-                onClick={async () => {
-                  try {
-                    await removeMember.mutateAsync(m.userId);
-                  } catch (err) {
-                    setMembersError(err instanceof Error ? err.message : 'Failed to remove member');
-                  }
-                }}
-                color={ACTION_BUTTON_COLORS.danger}
-                width={ACTION_BUTTON_SIZES.labelOnly.width}
-                height={ACTION_BUTTON_SIZES.labelOnly.height}
-                disabled={removeMember.isPending}
-              />
-            </li>
-          ))}
-        </ul>
+
+        {isMembersLoading ? <LoadingIndicator label="Loading members…" variant="skeleton" rows={4} /> : null}
+        {!isMembersLoading && members.length === 0 ? (
+          <div className={projectStyles.empty}>No members yet. Add someone above.</div>
+        ) : null}
+        {!isMembersLoading && members.length > 0 ? (
+          <ul className={projectStyles.memberList}>
+            {members.map((m) => (
+              <li key={m.userId} className={projectStyles.memberItem}>
+                <div className={projectStyles.memberMeta}>
+                  <p className={projectStyles.memberName}>{m.name || 'Unknown member'}</p>
+                  <p className={projectStyles.memberRole}>{m.role || 'member'}</p>
+                </div>
+                <ActionButton
+                  label="Remove"
+                  onClick={async () => {
+                    try {
+                      await removeMember.mutateAsync(m.userId);
+                    } catch (err) {
+                      setMembersError(err instanceof Error ? err.message : 'Failed to remove member');
+                    }
+                  }}
+                  color={ACTION_BUTTON_COLORS.danger}
+                  width={ACTION_BUTTON_SIZES.labelOnly.width}
+                  height={ACTION_BUTTON_SIZES.labelOnly.height}
+                  disabled={removeMember.isPending}
+                  loading={removeMember.isPending}
+                />
+              </li>
+            ))}
+          </ul>
+        ) : null}
       </Modal>
 
       <ConfirmDialog

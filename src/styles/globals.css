@@ -2,6 +2,9 @@
   /* Typography — Manrope for product UI */
   --font-primary: "Manrope Variable", Manrope, "Segoe UI", system-ui, sans-serif;
   --font-secondary: "Manrope Variable", Manrope, "Segoe UI", system-ui, sans-serif;
+  --font-display: "Manrope Variable", Manrope, "Segoe UI", system-ui, sans-serif;
+  --tracking-tight: -0.03em;
+  --tracking-label: 0.08em;
 
   /* Layout & depth */
   --radius-sm: 8px;

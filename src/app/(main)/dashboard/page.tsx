@@ -705,7 +705,7 @@ export default function DashboardPage() {
               action="Manage"
               actionHref="/users"
               icon="◉"
-              iconTone="linear-gradient(135deg, #2563eb, #06b6d4)"
+              iconTone="linear-gradient(135deg, #0f766e, #0e7490)"
             >
               <div className={styles.employeeGrid}>
                 {employees.map((employee) => {
@@ -762,7 +762,7 @@ export default function DashboardPage() {
               title="Team Activity Timeline"
               subtitle="Today (UTC) — full 24h bar; falls back to top agents MTD if no desk data today"
               icon="≋"
-              iconTone="linear-gradient(135deg, #7c3aed, #a855f7)"
+              iconTone="linear-gradient(135deg, #0f766e, #14b8a6)"
             >
               <div className={styles.timelineAxis}>
                 <span />
@@ -802,7 +802,7 @@ export default function DashboardPage() {
               ))}
               <div className={styles.legendWrap}>
                 {[
-                  ['#2563eb', 'Segments'],
+                  ['#0f766e', 'Segments'],
                   ['#64748b', 'Gaps'],
                 ].map(([color, label]) => (
                   <div key={label} className={styles.legendItem}>
@@ -818,7 +818,7 @@ export default function DashboardPage() {
                 title="Active Projects"
                 subtitle={`${projects.length} loaded for organization`}
                 icon="▣"
-                iconTone="linear-gradient(135deg, #7c3aed, #a855f7)"
+                iconTone="linear-gradient(135deg, #0f766e, #0e7490)"
               >
                 <div className={styles.sectionList}>
                   {projects.slice(0, 8).map((project, idx) => {
@@ -837,7 +837,7 @@ export default function DashboardPage() {
                       <article key={project.project_id} className={styles.projectItem}>
                         <div className={styles.projectHeader}>
                           <div className={styles.personRow}>
-                            <span className={styles.legendDot} style={{ background: '#7c3aed', width: 10, height: 10 }} />
+                            <span className={styles.legendDot} style={{ background: '#0f766e', width: 10, height: 10 }} />
                             <p className={styles.projectTitle}>{project.name}</p>
                           </div>
                           <span className={styles.badge}>{status}</span>

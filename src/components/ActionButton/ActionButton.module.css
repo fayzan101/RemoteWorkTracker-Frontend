@@ -35,6 +35,11 @@
   letter-spacing: 0.01em;
 }
 
+/* Keep footer / header button groups breathable when ActionButtons sit side by side */
+.actionButton + .actionButton {
+  margin-left: 0;
+}
+
 .actionButton:hover:not(:disabled) {
   filter: brightness(1.05);
   box-shadow: 0 4px 14px color-mix(in srgb, var(--button-color, #0f766e) 28%, transparent);
