@@ -1,44 +1,24 @@
-.toggleSwitch {
-  position: relative;
-  display: inline-block;
+.themeButton {
   width: 40px;
-  height: 20px;
+  height: 40px;
+  border-radius: 11px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  padding: 0;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
+  box-shadow: var(--shadow-xs);
 }
 
-.toggleSwitch input[type="checkbox"] {
-  display: none;
-}
-
-.toggleSwitchBackground {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: #ddd;
-  border-radius: 20px;
-  box-shadow: inset 0 0 0 2px #ccc;
-  transition: background-color 0.3s ease-in-out;
-}
-
-.toggleSwitchHandle {
-  position: absolute;
-  top: 5px;
-  left: 5px;
-  width: 10px;
-  height: 10px;
-  background-color: #fff;
-  border-radius: 50%;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-  transition: transform 0.3s ease-in-out;
-}
-
-.toggleSwitch input[type="checkbox"]:checked + .toggleSwitchBackground {
-  background-color: #05c46b;
-  box-shadow: inset 0 0 0 2px #04b360;
-}
-
-.toggleSwitch input[type="checkbox"]:checked + .toggleSwitchBackground .toggleSwitchHandle {
-  transform: translateX(20px);
+.themeButton:hover {
+  background: color-mix(in srgb, var(--color-primary) 8%, var(--color-surface));
+  color: var(--color-primary-dark);
+  border-color: color-mix(in srgb, var(--color-primary) 25%, var(--color-border));
 }

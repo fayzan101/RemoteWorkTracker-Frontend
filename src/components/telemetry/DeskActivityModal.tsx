@@ -4,6 +4,7 @@ import { useTelemetryActivityDetail } from '@/services/telemetry/useTelemetryAct
 import type { TelemetrySegmentRow } from '@/types/telemetry';
 import Modal from '@/components/Modal';
 import ActionButton from '@/components/ActionButton';
+import LoadingIndicator from '@/components/LoadingIndicator';
 import { ACTION_BUTTON_COLORS, ACTION_BUTTON_SIZES } from '@/constants/actionButtons';
 import styles from './DeskActivityModal.module.css';
 
@@ -65,7 +66,7 @@ export function DeskActivityModal(props: {
         {day ? <span className={styles.meta}> · {day} (UTC)</span> : null}
       </p>
 
-      {isLoading && <div className={styles.state}>Loading segments…</div>}
+      {isLoading && <LoadingIndicator label="Loading desk segments…" variant="skeleton" rows={6} />}
       {isError && (
         <div className={styles.error}>
           {(error as Error)?.message || 'Could not load activity segments'}

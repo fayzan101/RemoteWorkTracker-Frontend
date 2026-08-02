@@ -8,9 +8,8 @@ import { ReactQueryProvider } from './react-query-provider';
 import { ThemeProvider } from '@/context/ThemeContext';
 
 const metadata = {
-  title: 'Remote Work Tracking App',
-  description: 'A comprehensive goal tracking and management application built with Next.js and TypeScript.',
-  favicon: '/images/BrandLogo.svg',
+  title: 'Work Pulse AI',
+  description: 'Remote work tracking, analytics, and workforce operations.',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -19,26 +18,27 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <title>{metadata.title}</title>
         <meta name="description" content={metadata.description} />
-        <link rel="icon" href={metadata.favicon} />
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        <link rel="alternate icon" href="/images/BrandLogo.svg" />
         <script src="/theme-init.js" />
       </head>
       <body>
-          <ThemeProvider>
-            <ReactQueryProvider>
-              <main>{children}</main>
-              <ToastContainer
-                position="top-right"
-                autoClose={3000}
-                hideProgressBar={false}
-                newestOnTop={true}
-                closeOnClick
-                rtl={false}
-                pauseOnFocusLoss
-                draggable
-                pauseOnHover
-              />
-            </ReactQueryProvider>
-          </ThemeProvider>
+        <ThemeProvider>
+          <ReactQueryProvider>
+            <main>{children}</main>
+            <ToastContainer
+              position="top-right"
+              autoClose={3000}
+              hideProgressBar={false}
+              newestOnTop={true}
+              closeOnClick
+              rtl={false}
+              pauseOnFocusLoss
+              draggable
+              pauseOnHover
+            />
+          </ReactQueryProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

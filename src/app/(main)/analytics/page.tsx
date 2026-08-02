@@ -34,6 +34,7 @@ import {
   shouldWarnSparseOrLowConfidence,
   type DashboardAiInsight,
 } from '@/lib/analytics-insights';
+import LoadingIndicator from '@/components/LoadingIndicator';
 
 function fmtSeconds(total: number) {
   if (!Number.isFinite(total) || total <= 0) return '—';
@@ -287,9 +288,7 @@ export default function AnalyticsPage() {
 
       {error && <div className={styles.errorBox}>{(error as Error).message}</div>}
 
-      {isLoading && (
-        <p style={{ color: 'var(--color-text-tertiary)' }}>Loading analytics…</p>
-      )}
+      {isLoading && <LoadingIndicator label="Loading analytics…" variant="spinner" />}
 
       {!isLoading && facts && (
         <>

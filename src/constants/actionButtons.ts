@@ -5,21 +5,21 @@ export const ACTION_BUTTON_SIZES = {
     width: 32,
     height: 32,
   },
-  // Label-only buttons (in modals and page headers)
+  // Label buttons in modals / page headers — auto width prevents cramped/stuck labels
   labelOnly: {
-    width: 120,
-    height: 38,
+    width: 'auto' as const,
+    height: 40,
   },
 } as const;
 
-// ActionButton color constants - Modern Blue Theme
+// Professional teal / slate palette (aligned with globals.css)
 export const ACTION_BUTTON_COLORS = {
-  primary: '#2563eb',      // Blue - Primary/Update actions
-  success: '#0284c7',      // Sky Blue - Add/Create/Success actions
-  danger: '#ef4444',       // Red - Delete/Danger actions
-  secondary: '#64748b',    // Slate - Cancel/Secondary actions
-  info: '#0284c7',         // Sky Blue - Info/Toggle actions
-  warning: '#f97316',      // Orange - Warning actions
-  purple: '#3b82f6',       // Light Blue - Alternative actions
-  green: '#22c55e',        // Green - Positive actions
+  primary: '#0f766e',
+  success: '#0f766e',
+  danger: '#dc2626',
+  secondary: '#64748b',
+  info: '#0369a1',
+  warning: '#c2410c',
+  purple: '#0e7490',
+  green: '#15803d',
 } as const;

@@ -28,6 +28,7 @@ import type { TelemetryDailyRow, TelemetryDetailResponse } from '@/types/telemet
 import type { User, Goal, Project, PayrollRecord, Department, Role, Task, TaskListResponse } from '@/types';
 import type { AiPerformanceRankingRow, TeamPerformanceRow } from '@/types';
 import { formatPkrCompact } from '@/lib/formatCurrency';
+import LoadingIndicator from '@/components/LoadingIndicator';
 import {
   appColorForLabel,
   averageActiveHoursByDay,
@@ -1228,7 +1229,7 @@ export default function DashboardPage() {
                 ) : null}
 
                 {aiRankingLoading && !aiRankingPayload ? (
-                  <p className={styles.subtleText}>Loading…</p>
+                  <LoadingIndicator label="Loading rankings…" variant="dots" />
                 ) : null}
                 {aiRankingIsError ? (
                   <p className={styles.subtleText} role="alert">
@@ -1324,7 +1325,7 @@ export default function DashboardPage() {
             >
               <div className={styles.rankingCardInner}>
                 {aiRankingLoading && !aiRankingPayload ? (
-                  <p className={styles.subtleText}>Loading…</p>
+                  <LoadingIndicator label="Loading rankings…" variant="dots" />
                 ) : null}
                 {aiRankingIsError ? (
                   <p className={styles.subtleText} role="alert">

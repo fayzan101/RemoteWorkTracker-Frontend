@@ -1,6 +1,7 @@
 import styles from './DataTable.module.css';
 import { useState, useMemo } from 'react';
 import { ChevronLeft, ChevronRight, Search, Settings, Filter } from 'lucide-react';
+import LoadingIndicator from '@/components/LoadingIndicator';
 
 interface Column<T> {
   header: string;
@@ -134,7 +135,11 @@ export default function DataTable<T extends { [key: string]: any }>({
 
   // Early returns after all hooks are set up
   if (isLoading) {
-    return <div className={styles.loading}>Loading...</div>;
+    return (
+      <div className={styles.loading}>
+        <LoadingIndicator label="Loading records…" variant="skeleton" rows={5} />
+      </div>
+    );
   }
 
   if (isEmpty || safeData.length === 0) {

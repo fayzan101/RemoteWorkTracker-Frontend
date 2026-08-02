@@ -1,23 +1,22 @@
 'use client';
 
-import React from 'react';
+import { Moon, Sun } from 'lucide-react';
 import { useTheme } from '@/context/ThemeContext';
 import styles from './ThemeSwitcher.module.css';
 
 export default function ThemeSwitcher() {
   const { theme, toggleTheme } = useTheme();
+  const isDark = theme === 'dark';
 
   return (
-    <label className={styles.toggleSwitch}>
-      <input 
-        type="checkbox" 
-        checked={theme === 'dark'}
-        onChange={toggleTheme}
-        aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
-      />
-      <div className={styles.toggleSwitchBackground}>
-        <div className={styles.toggleSwitchHandle}></div>
-      </div>
-    </label>
+    <button
+      type="button"
+      className={styles.themeButton}
+      onClick={toggleTheme}
+      aria-label={`Switch to ${isDark ? 'light' : 'dark'} mode`}
+      title={isDark ? 'Light mode' : 'Dark mode'}
+    >
+      {isDark ? <Sun size={17} aria-hidden /> : <Moon size={17} aria-hidden />}
+    </button>
   );
 }

@@ -33,7 +33,7 @@ export default function ConfirmDialog({
       title={title}
       size="small"
       actions={
-        <div className={styles.actions}>
+        <>
           <button
             type="button"
             className={`${styles.btn} ${styles.btnCancel}`}
@@ -42,16 +42,22 @@ export default function ConfirmDialog({
           >
             {cancelText}
           </button>
-
           <button
             type="button"
-            className={`${styles.btn} ${styles.btnConfirm}`}
+            className={`${styles.btn} ${isDangerous ? styles.btnDanger : styles.btnConfirm}`}
             onClick={onConfirm}
             disabled={isLoading}
           >
-            {isLoading ? 'Processing...' : confirmText}
+            {isLoading ? (
+              <span className={styles.btnLoading}>
+                <span className={styles.spinner} aria-hidden="true" />
+                Processing…
+              </span>
+            ) : (
+              confirmText
+            )}
           </button>
-        </div>
+        </>
       }
     >
       <p className={styles.message}>{message}</p>

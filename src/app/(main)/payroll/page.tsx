@@ -9,6 +9,7 @@ import { ACTION_BUTTON_COLORS, ACTION_BUTTON_SIZES } from '@/constants/actionBut
 import { useGeneratePayroll, usePayrollList } from '@/services/payroll/usePayroll';
 import type { PayrollFilters, PayrollListMeta, PayrollListResponse, PayrollRecord } from '@/types';
 import { formatPkr } from '@/lib/formatCurrency';
+import LoadingIndicator from '@/components/LoadingIndicator';
 
 const DEFAULT_LIMIT = 10;
 
@@ -289,7 +290,11 @@ export default function PayrollPage() {
               </p>
             </div>
             <div className={styles.paginationText}>
-              {isLoading ? 'Loading payroll data...' : `Showing ${visibleRecords.length} of ${totalRecords} records`}
+              {isLoading ? (
+                <LoadingIndicator label="Loading payroll data…" variant="inline" />
+              ) : (
+                `Showing ${visibleRecords.length} of ${totalRecords} records`
+              )}
             </div>
           </div>
 

@@ -15,6 +15,7 @@ import {
   useDeleteGeoFence,
 } from '@/services/attendance/useAttendance';
 import type { CreateGeoFencePayload, GeoFence } from '@/types';
+import LoadingIndicator from '@/components/LoadingIndicator';
 
 const emptyFence: CreateGeoFencePayload = {
   name: '',
@@ -86,7 +87,7 @@ export default function OrganizationPage() {
       </div>
 
       {isLoading ? (
-        <div style={{ textAlign: 'center', padding: '32px', color: 'var(--color-text-secondary)' }}>Loading...</div>
+        <LoadingIndicator label="Loading organization…" variant="skeleton" rows={4} />
       ) : org ? (
         <div
           style={{

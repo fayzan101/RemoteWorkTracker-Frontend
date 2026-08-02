@@ -13,11 +13,12 @@ type ActionButtonProps = {
   tooltip?: string;
   disabled?: boolean;
   loading?: boolean;
+  type?: 'button' | 'submit' | 'reset';
 };
 
 export default function ActionButton({
   onClick,
-  color = '#3b82f6',
+  color = '#0f766e',
   icon: IconComponent,
   imageUrl,
   label,
@@ -26,8 +27,8 @@ export default function ActionButton({
   tooltip,
   disabled = false,
   loading = false,
+  type = 'button',
 }: ActionButtonProps) {
-  // Determine width/height values with units
   const getSize = (val: number | string | undefined) => {
     if (val === undefined) return '32px';
     if (typeof val === 'number') return `${val}px`;
@@ -36,27 +37,33 @@ export default function ActionButton({
 
   const widthValue = getSize(width);
   const heightValue = getSize(height);
+  const isAutoWidth = widthValue === 'auto' || width === 'auto';
 
   const buttonStyle = {
     '--button-color': color,
-    '--button-width': widthValue,
+    '--button-width': isAutoWidth ? 'auto' : widthValue,
     '--button-height': heightValue,
   } as React.CSSProperties & { [key: string]: string };
 
   return (
     <button
-      className={styles.actionButton}
+      type={type}
+      className={`${styles.actionButton} ${isAutoWidth ? styles.autoWidth : ''} ${label ? styles.withLabel : ''}`}
       onClick={onClick}
       disabled={disabled || loading}
       title={tooltip}
       style={buttonStyle}
+      aria-busy={loading || undefined}
     >
       {loading ? (
-        <div className={styles.spinner} />
+        <>
+          <span className={styles.spinner} aria-hidden="true" />
+          {label ? <span className={styles.label}>{label}</span> : null}
+        </>
       ) : (
         <>
           {IconComponent && <IconComponent size={16} className={styles.icon} />}
-          {imageUrl && <img src={imageUrl} alt={label} className={styles.image} />}
+          {imageUrl && <img src={imageUrl} alt="" className={styles.image} />}
           {label && <span className={styles.label}>{label}</span>}
         </>
       )}

@@ -2,7 +2,9 @@
 
 import { useRef, useState } from 'react';
 import Link from 'next/link';
-import styles from '../main-pages.module.css';
+import { KeyRound, Building2, BellRing, ArrowRight, ShieldCheck } from 'lucide-react';
+import pageStyles from '../main-pages.module.css';
+import styles from './settings-page.module.css';
 import FormField from '@/components/FormField';
 import ActionButton from '@/components/ActionButton';
 import PasswordInput from '@/components/PasswordInput';
@@ -23,6 +25,7 @@ export default function SettingsPage() {
   const [success, setSuccess] = useState<string | null>(null);
   const [pushError, setPushError] = useState<string | null>(null);
   const [pushSuccess, setPushSuccess] = useState<string | null>(null);
+  const [pushPending, setPushPending] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,23 +62,29 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className={styles.pageContainer}>
-      <div className={styles.pageHeader}>
+    <div className={pageStyles.pageContainer}>
+      <div className={pageStyles.pageHeader}>
         <div>
-          <h1 className={styles.pageTitle}>Settings</h1>
-          <p className={styles.pageSubtitle}>Manage your account and preferences</p>
+          <h1 className={pageStyles.pageTitle}>Settings</h1>
+          <p className={pageStyles.pageSubtitle}>
+            Secure your workspace admin account and manage optional notification delivery.
+          </p>
         </div>
       </div>
 
-      <div style={{ maxWidth: '600px' }}>
-        <div className={styles.panelCard} style={{ marginBottom: '16px' }}>
-          <h3 style={{ marginTop: 0, marginBottom: '8px', fontSize: '16px', fontWeight: 600 }}>
-            Change admin password
-          </h3>
-          <p style={{ color: 'var(--color-text-tertiary)', fontSize: '14px', marginBottom: '16px' }}>
-            {ORG_USER_PASSWORD_REQUIREMENTS}
-          </p>
-          <form ref={formRef} onSubmit={handleSubmit} style={{ display: 'grid', gap: '12px' }}>
+      <div className={styles.layout}>
+        <section className={styles.card}>
+          <div className={styles.cardHeader}>
+            <span className={styles.iconWrap} aria-hidden>
+              <KeyRound size={18} />
+            </span>
+            <div>
+              <h2 className={styles.cardTitle}>Admin password</h2>
+              <p className={styles.cardHint}>{ORG_USER_PASSWORD_REQUIREMENTS}</p>
+            </div>
+          </div>
+
+          <form ref={formRef} onSubmit={handleSubmit} className={styles.form}>
             <FormField label="Current password" required>
               <PasswordInput value={oldPassword} onChange={setOldPassword} required />
             </FormField>
@@ -85,40 +94,58 @@ export default function SettingsPage() {
             <FormField label="Confirm new password" required>
               <PasswordInput value={confirmPassword} onChange={setConfirmPassword} required />
             </FormField>
-            {error && <div style={{ color: '#dc2626', fontSize: '14px' }}>{error}</div>}
-            {success && <div style={{ color: '#16a34a', fontSize: '14px' }}>{success}</div>}
-            <ActionButton
-              label={changePassword.isPending ? 'Updating...' : 'Update password'}
-              onClick={() => formRef.current?.requestSubmit()}
-              color={ACTION_BUTTON_COLORS.success}
-              width={ACTION_BUTTON_SIZES.labelOnly.width}
-              height={ACTION_BUTTON_SIZES.labelOnly.height}
-              disabled={changePassword.isPending}
-            />
+
+            {error ? <div className={pageStyles.formError}>{error}</div> : null}
+            {success ? <div className={pageStyles.formSuccess}>{success}</div> : null}
+
+            <div className={styles.actions}>
+              <ActionButton
+                label={changePassword.isPending ? 'Updating…' : 'Update password'}
+                onClick={() => formRef.current?.requestSubmit()}
+                color={ACTION_BUTTON_COLORS.primary}
+                width={ACTION_BUTTON_SIZES.labelOnly.width}
+                height={ACTION_BUTTON_SIZES.labelOnly.height}
+                disabled={changePassword.isPending}
+                loading={changePassword.isPending}
+              />
+            </div>
           </form>
-        </div>
+        </section>
 
-        <div className={styles.panelCard}>
-          <h3 style={{ marginTop: 0, marginBottom: '8px', fontSize: '16px', fontWeight: 600 }}>
-            Organization
-          </h3>
-          <p style={{ color: 'var(--color-text-tertiary)', fontSize: '14px', marginBottom: '12px' }}>
-            View organization details and geo-fences from the organization page.
-          </p>
-          <Link href="/organization" style={{ color: 'var(--color-primary)', fontSize: '14px' }}>
-            Go to Organization →
+        <section className={styles.card}>
+          <div className={styles.cardHeader}>
+            <span className={styles.iconWrap} aria-hidden>
+              <Building2 size={18} />
+            </span>
+            <div>
+              <h2 className={styles.cardTitle}>Organization</h2>
+              <p className={styles.cardHint}>
+                Review company details, geo-fences, and workspace identity.
+              </p>
+            </div>
+          </div>
+          <Link href="/organization" className={styles.linkRow}>
+            <span>Open organization settings</span>
+            <ArrowRight size={16} aria-hidden />
           </Link>
-        </div>
+        </section>
 
-        <div className={styles.panelCard} style={{ marginTop: 16 }}>
-          <h3 style={{ marginTop: 0, marginBottom: '8px', fontSize: '16px', fontWeight: 600 }}>
-            Push notifications (optional)
-          </h3>
-          <p style={{ color: 'var(--color-text-tertiary)', fontSize: '14px', marginBottom: '12px' }}>
-            Register a device push token with the API when FCM/web push is configured.
-          </p>
+        <section className={styles.card}>
+          <div className={styles.cardHeader}>
+            <span className={styles.iconWrap} aria-hidden>
+              <BellRing size={18} />
+            </span>
+            <div>
+              <h2 className={styles.cardTitle}>Push notifications</h2>
+              <p className={styles.cardHint}>
+                Optional device token registration when FCM / web push is configured on the API.
+              </p>
+            </div>
+          </div>
+
           <form
             id="push-token-form"
+            className={styles.form}
             onSubmit={async (e) => {
               e.preventDefault();
               setPushError(null);
@@ -129,32 +156,47 @@ export default function SettingsPage() {
                 setPushError('Token is required.');
                 return;
               }
+              setPushPending(true);
               try {
                 await notificationsService.registerPushToken(token, 'web');
                 setPushSuccess('Push token registered.');
               } catch (err) {
                 setPushError(err instanceof Error ? err.message : 'Failed to register token');
+              } finally {
+                setPushPending(false);
               }
             }}
-            style={{ display: 'grid', gap: 12 }}
           >
             <FormField label="Device token" required>
               <input name="token" type="text" placeholder="FCM / web push token" required />
             </FormField>
-            {pushError && <div style={{ color: '#dc2626', fontSize: 14 }}>{pushError}</div>}
-            {pushSuccess && <div style={{ color: '#16a34a', fontSize: 14 }}>{pushSuccess}</div>}
-            <ActionButton
-              label="Register push token"
-              onClick={() => {
-                const form = document.getElementById('push-token-form') as HTMLFormElement | null;
-                form?.requestSubmit();
-              }}
-              color={ACTION_BUTTON_COLORS.primary}
-              width={ACTION_BUTTON_SIZES.labelOnly.width}
-              height={ACTION_BUTTON_SIZES.labelOnly.height}
-            />
+            {pushError ? <div className={pageStyles.formError}>{pushError}</div> : null}
+            {pushSuccess ? <div className={pageStyles.formSuccess}>{pushSuccess}</div> : null}
+            <div className={styles.actions}>
+              <ActionButton
+                label={pushPending ? 'Registering…' : 'Register push token'}
+                onClick={() => {
+                  const form = document.getElementById('push-token-form') as HTMLFormElement | null;
+                  form?.requestSubmit();
+                }}
+                color={ACTION_BUTTON_COLORS.secondary}
+                width={ACTION_BUTTON_SIZES.labelOnly.width}
+                height={ACTION_BUTTON_SIZES.labelOnly.height}
+                loading={pushPending}
+                disabled={pushPending}
+              />
+            </div>
           </form>
-        </div>
+        </section>
+
+        <aside className={styles.asideCard}>
+          <ShieldCheck size={20} className={styles.asideIcon} aria-hidden />
+          <h3 className={styles.asideTitle}>Security tip</h3>
+          <p className={styles.asideText}>
+            Use a unique admin password and rotate it if anyone with elevated access leaves the
+            organization.
+          </p>
+        </aside>
       </div>
     </div>
   );
